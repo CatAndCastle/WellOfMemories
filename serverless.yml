@@ -1,0 +1,156 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: wellofmemories
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+custom:
+  video_bucket: "dev.wom.com"
+  render_slide_sns_topic: render-slide # Must create this topic manually in the AWS console
+
+provider:
+  name: aws
+  runtime: python2.7
+  environment:
+    DYNAMODB_TABLE: "WellOfMemoriesCounter"
+    S3_BUCKET: ${self:custom.video_bucket}
+    RENDER_SLIDE_SNS: ${self:custom.render_slide_sns_topic}
+  iamRoleStatements:
+    - Effect: Allow
+      Resource: "*"
+      # Resource: "arn:aws:sns:${opt:region, self:provider.region}:*:${self:custom.render_slide_sns_topic}"
+      Action:
+        - sns:Publish
+    - Effect: Allow
+      Resource: "arn:aws:s3:::${self:custom.video_bucket}/*"
+      Action:
+        - s3:PutObject
+        - s3:PutObjectAcl
+    - Effect: Allow
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:GetItem
+
+resources:
+  Resources:
+    WellOfMemoriesCounterTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: 'id'
+            AttributeType: 'S'
+        KeySchema:
+          - AttributeName: 'id'
+            KeyType: 'HASH'
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+    RendersBucket:
+      Type: AWS::S3::Bucket
+      DeletionPolicy: Retain
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - "*"
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              AllowedOrigins:
+                - "*"
+
+# you can add packaging information here
+package:
+  include:
+    - bin/**
+    - src/**
+    - assets/**
+    - ImageMagick-7.0.7/**
+  exclude:
+    - requirements.txt
+    - serverless.yml
+    - README.md
+    - LICENSE.txt
+    - dependencies-mac/**
+
+functions:
+  new_video:
+    handler: new_video.handler
+    events:
+      - http:
+          path: new_video/
+          method: post
+  render_slide:
+    handler: render_slide.handler
+    timeout: 90
+    events:
+      - sns: ${self:custom.render_slide_sns_topic}
+
+#    The following are a few example events you can configure
+#    NOTE: Please make sure to change your handler code to work with those events
+#    Check the event documentation for details
+#    events:
+#      - http:
+#          path: users/create
+#          method: get
+#      - s3: ${env:BUCKET}
+#      - schedule: rate(10 minutes)
+#      - sns: greeter-topic
+#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#      - alexaSkill
+#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
+#      - iot:
+#          sql: "SELECT * FROM 'some_topic'"
+#      - cloudwatchEvent:
+#          event:
+#            source:
+#              - "aws.ec2"
+#            detail-type:
+#              - "EC2 Instance State-change Notification"
+#            detail:
+#              state:
+#                - pending
+#      - cloudwatchLog: '/aws/lambda/hello'
+#      - cognitoUserPool:
+#          pool: MyUserPool
+#          trigger: PreSignUp
+
+#    Define function environment variables here
+#    environment:
+#      variable2: value2
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"

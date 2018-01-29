@@ -1,0 +1,75 @@
+{
+	"all":{
+		"resourceType": {
+			"accepted": ["graphic", "text"],
+			"type":"str",
+			"default": "text"
+		},
+		"resourceUrl": {
+			"accepted":["*"],
+			"type":"str",
+			"default": ""
+		},
+		"transitionIn": {
+			"accepted":["immediate", "fadeIn", "bloom", "wipeLeftToRight", "wipeRightToLeft"],
+			"type":"str",
+			"default": "immediate"
+		},
+		"transitionInDuration":{
+			"accepted":"*",
+			"type":"int",
+			"default": 300
+		},
+		"transitionInStart":{
+			"accepted":"*",
+			"type":"int",
+			"default": 0
+		},
+		"transitionOut": {
+			"accepted":["immediate", "fadeOut"],
+			"type":"str",
+			"default": "immediate"
+		},
+		"transitionOutDuration":{
+			"accepted":"*",
+			"type":"int",
+			"default": 300
+		},
+		"transitionOutStart":{
+			"accepted":"*",
+			"type":"int",
+			"default": 0
+		},
+		"top":{
+			"accepted":"*",
+			"type":"str",
+			"default": "50%",
+			"eval": "int('%s'.strip('%'))"
+		},
+		"left":{
+			"accepted":"*",
+			"type":"str",
+			"default": "50%",
+			"eval": "int('%s'.strip('%'))"
+		}
+	},
+	"text":{
+		"fontSize":{
+			"accepted":"*",
+			"type":"int",
+			"default": "72",
+			"eval": "int('%s')"
+		},
+		"text":{
+			"accepted":"*",
+			"type":"str"
+		},
+		"kerning":{
+			"accepted":"*",
+			"type":"int",
+			"default": 10
+		}
+	},
+	"graphic":{}
+
+}
