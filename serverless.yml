@@ -20,22 +20,20 @@ service: wellofmemories
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
 custom:
-  video_bucket: "dev.wom.com"
-  render_slide_sns_topic: render-slide # Must create this topic manually in the AWS console
+  video_bucket: dev.wom.com
+  dynamo_table: WellOfMemories
 
 provider:
   name: aws
   runtime: python2.7
   environment:
-    DYNAMODB_TABLE: "WellOfMemoriesCounter"
+    DYNAMODB_TABLE: ${self:custom.dynamo_table}
     S3_BUCKET: ${self:custom.video_bucket}
-    RENDER_SLIDE_SNS: ${self:custom.render_slide_sns_topic}
   iamRoleStatements:
     - Effect: Allow
-      Resource: "*"
-      # Resource: "arn:aws:sns:${opt:region, self:provider.region}:*:${self:custom.render_slide_sns_topic}"
       Action:
-        - sns:Publish
+        - lambda:InvokeFunction
+      Resource: "*"
     - Effect: Allow
       Resource: "arn:aws:s3:::${self:custom.video_bucket}/*"
       Action:
@@ -48,6 +46,8 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
         - dynamodb:GetItem
+        - dynamodb:Scan
+        - dynamodb:Query
 
 resources:
   Resources:
@@ -57,11 +57,15 @@ resources:
       Properties:
         TableName: ${self:provider.environment.DYNAMODB_TABLE}
         AttributeDefinitions:
-          - AttributeName: 'id'
-            AttributeType: 'S'
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: item
+            AttributeType: S
         KeySchema:
-          - AttributeName: 'id'
-            KeyType: 'HASH'
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: item
+            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
@@ -83,7 +87,6 @@ resources:
               AllowedOrigins:
                 - "*"
 
-# you can add packaging information here
 package:
   include:
     - bin/**
@@ -96,6 +99,8 @@ package:
     - README.md
     - LICENSE.txt
     - dependencies-mac/**
+    - .TESTS/**
+    - ffmpeg/**
 
 functions:
   new_video:
@@ -106,51 +111,10 @@ functions:
           method: post
   render_slide:
     handler: render_slide.handler
-    timeout: 90
-    events:
-      - sns: ${self:custom.render_slide_sns_topic}
-
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
-#    events:
-#      - http:
-#          path: users/create
-#          method: get
-#      - s3: ${env:BUCKET}
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill
-#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
-#      - iot:
-#          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
-#      - cloudwatchLog: '/aws/lambda/hello'
-#      - cognitoUserPool:
-#          pool: MyUserPool
-#          trigger: PreSignUp
-
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+    timeout: 180
+  render_transition:
+    handler: render_transition.handler
+    timeout: 60
+  render_video:
+    handler: render_video.handler
+    timeout: 300

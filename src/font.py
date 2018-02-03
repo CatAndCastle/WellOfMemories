@@ -6,7 +6,7 @@ class Font:
 		# print("initiate font")
 		self.url = url
 		# default to packaged font
-		self.ttf = os.environ['LAMBDA_TASK_ROOT'] + "/assets/Bakerville.ttf"
+		# self.ttf = os.environ['LAMBDA_TASK_ROOT'] + "/assets/Bakerville.ttf"
 		# try to download font
 		self.download()
 	def download(self):

@@ -1,5 +1,7 @@
 .DS_STORE
 dependencies-mac/
+ffmpeg/
+.TESTS/
 
 # Serverless directories
 .serverless

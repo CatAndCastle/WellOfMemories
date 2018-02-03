@@ -11,8 +11,8 @@ Python 2.7 Serverless application for Well of Memories
 ## Srverless Resources ##
 * RendersBucket: 
 S3 Bucket where the rendered videos will be stored
-* WellOfMemoriesCounterTable
-DynamoDB table: 
+* WellOfMemoriesCounterTable:
+DynamoDB table
 * RenderSlideSnsTopic: 
 SNS topic that triggers individual slide renedering process
 * FinalVideoSnsTopic: 

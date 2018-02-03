@@ -62,7 +62,7 @@ class ComplexFilter:
 		else:
 			self.data[key] = value
 	def buildStream(self):
-		# size
+		# resize resource
 		if "width" in self.data and "height" in self.data:
 			self.filters.append("scale=w='if(gte(iw,ih),%i,oh*a)':h='if(gt(ih,iw),%i,ow/a)'" % (self.data["width"], self.data["height"]) )
 		elif "width" in self.data:
@@ -71,7 +71,7 @@ class ComplexFilter:
 			self.filters.append("scale=h=%i:w=oh*a" % self.data["height"])
 
 		# transition In
-		if self.data["transitionIn"]=="fadeIn" or self.data["transitionIn"]=="immediate":
+		if self.data["transitionIn"]=="fadeIn":
 			self.fadeIn()
 		elif self.data["transitionIn"]=="bloom":
 			self.bloom()
@@ -101,24 +101,14 @@ class ComplexFilter:
 		else:
 			return "overlay=x='W*%.2f-w/2':y='H*%.2f-h/2':shortest=1:eof_action=pass,trim=duration=%.2f" % (self.data["left"], self.data["top"], self.duration)
 	def fadeIn(self):
-		self.filters.append("fade=in:st=%.2f:d=%.2f:c=%s" % (0, self.data["transitionInDuration"], "white"))
+		self.filters.append("fade=in:st=%.2f:d=%.2f:alpha=1" % (0, self.data["transitionInDuration"]))
 	def bloom(self):
 		# bloom is a fade in with a moving overlay
-		self.filters.append("fade=in:st=%.2f:d=%.2f:c=%s" % (0, self.data["transitionInDuration"], "white"))
-		# return "fade=in:st=%.2f:d=%.2f:c=" % (start/float(1000), duration/float(1000), color)
+		self.filters.append("fade=in:st=%.2f:d=%.2f:alpha=1" % (0, self.data["transitionInDuration"]))
 	def fadeOut(self):
-		self.filters.append("fade=out:st=%.2f:d=%.2f:c=%s" % (self.data["transitionOutStart"]-self.data["transitionInStart"], self.data["transitionOutDuration"], "white"))
-	# def wipeLeftToRight(self):
-		# fade in 
-		# sid = common.randomString(3)
-		# self.filters.append("fade=in:st=%.2f:d=%.2f:c=%s[%s]" % (0, 300, "white", sid))
-		# and wipe
-# ffmpeg -loop 1 -i /tmp/text-5QZQQI2LG0.jpg -i assets/white_mask.png \
-# -filter_complex "\
-# [0]scale=w=trunc(iw/2)*2:h=trunc(ih/2)*2[v];\
-# [1][v]scale2ref[c1][v1];\
-# [v1][c1]overlay=x='(t/3)*W':y='(H-h)/2',trim=duration=5,setpts=PTS-STARTPTS[vf]" \
-# -map "[vf]" -pix_fmt yuv420p -y wipe.mp4
-	# def wipeLeftToRight(self):
+		self.filters.append("fade=out:st=%.2f:d=%.2f:alpha=1" % (self.data["transitionOutStart"]-self.data["transitionInStart"], self.data["transitionOutDuration"]))
 
-# ffmpeg -loop 1 -i title.jpg -filter_complex "fade=in:st=1:d=1:c=white,fade=out:st=3:d=1:c=white,trim=duration=5,setpts=PTS-STARTPTS" -pix_fmt yuv420p -y loop.mp4
+def fadeInFromColor(start, duration, color):
+	return "fade=in:st=%.2f:d=%.2f:c=%s" % (start, duration, color)
+def fadeOutToColor(start, duration, color):
+	return "fade=out:st=%.2f:d=%.2f:c=%s" % (start, duration, color)

@@ -59,7 +59,7 @@ class TextResource(Resource):
 		f = Font(self.data['resourceUrl'])
 		
 		# RENDER TEXT JPG WITH IMAGICK
-		self.path = '/tmp/text-' + common.randomString(10) + '.jpg'
+		self.path = '/tmp/text-' + common.randomString(10) + '.png'
 		label_cmd = "./render_label.sh \"%s\" \"%s\" \"%s\" \"%s\" %i \"%s\"" % (self.data['text'], f.ttf, self.data['color'], int(self.data['fontSize'].strip('px'))*self.comp.scale_factor, self.data['kerning'], self.path)
 		
 		res = common.executeCmd(label_cmd)
@@ -94,8 +94,13 @@ class PhotoResource:
 		self.data = data
 	def render(self):
 		# DOWNLOAD IMAGE
-		self.path = '/tmp/photo-' + common.randomString(10)
+		self.path = '/tmp/photo-' + common.randomString(10)# + '.jpg'
 		urllib.urlretrieve(self.data["resourceUrl"], self.path)
+
+		# convert to jpg
+		scale="%s -i %s -pix_fmt yuvj420p -y %s" % (os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg', self.path, self.path+'.jpg')
+		res = common.executeCmd(scale)
+		self.path = self.path+'.jpg'
 
 		res = Animate.animatePhoto(self.path, self.data["animation"], int(self.data["duration"])/float(1000));
 		return res

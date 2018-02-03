@@ -22,32 +22,24 @@ class Slide:
 				comp.addResource(layer)
 			
 			res = comp.render()
+			self.processRenderResult(res)
 
-			# Upload file to s3
-			if res["statusCode"] == 200:
-				self.upload(res["video_path"])
-			else:
-				print("ERROR Rendering sectionHeader")
-				print(json.dumps(res["error"]))
-		
+			
 		elif self.data["slideType"]=="photo":
 			photo = PhotoResource(self.data)
 			res = photo.render()
+			self.processRenderResult(res)
 
-			# Upload file to s3
-			if res["statusCode"] == 200:
-				self.upload(res["video_path"])
-			else:
-				print("ERROR Rendering Slide")
-				print(json.dumps(res["error"]))
 
-	def upload(self, FILE):
-		KEY = 'renders/'+self.data['id']+'.mp4'
-		data = open(FILE, 'rb')
-		s3 = boto3.resource('s3')
-		s3.Bucket(os.environ['S3_BUCKET']).put_object(Key=KEY, Body=data, ACL='public-read', ContentType='video/mp4')
-		return "https://s3.amazonaws.com/"+os.environ['S3_BUCKET']+"/" + KEY
-
-	def savetoDynamo(self):
-		# Save slide transition info with slide mp4 url string
-		print("save slide data to dynamodb")
+	def processRenderResult(self, res):
+		if res["statusCode"] == 200:
+			url = common.uploadS3(res["video_path"], "%s/slide_%s.mp4" % (self.data['project_id'],self.data['idx']))
+			self.data["renderedUrl"] = url
+			common.saveToDynamo(
+				{'id': self.data["project_id"],
+				'item': "slide_%03d" % self.data["idx"],
+				'slideData': self.data
+				})
+		else:
+			print("ERROR Rendering sectionHeader")
+			print(json.dumps(res["error"]))
