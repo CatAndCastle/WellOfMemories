@@ -17,3 +17,9 @@ DynamoDB table for storing data during rendering
 
 ## Deployment ##
 ```serverless deploy [--aws-profile serverless]```
+
+## Lambda Functions ##
+* new_video
+* render_slide
+* render_transition
+* render_video
