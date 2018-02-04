@@ -9,14 +9,11 @@ Python 2.7 Serverless application for Well of Memories
 * numpy
 
 ## Srverless Resources ##
-* RendersBucket: 
-S3 Bucket where the rendered videos will be stored
-* WellOfMemoriesCounterTable:
-DynamoDB table
-* RenderSlideSnsTopic: 
-SNS topic that triggers individual slide renedering process
-* FinalVideoSnsTopic: 
-SNS topic that triggers concatenation of slides and final video rendering
+* video_bucket: 
+S3 Bucket where intermediate files and the final videos will be stored
+* dynamo_table:
+DynamoDB table for storing data during rendering
+
 
 ## Deployment ##
-```serverless deploy --aws-profile serverless```
+```serverless deploy [--aws-profile serverless]```
