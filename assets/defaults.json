@@ -1,0 +1,219 @@
+{
+	"event":{
+		"id":{
+			"optional":false,
+			"description": "String. Unique project id"
+		},
+		"webhookUrl":{
+			"optional":false,
+			"description": "webhookUrl accepts a POST request when video is ready for viewing"
+		},
+		"fileName":{
+			"optional":false,
+			"description": "Video file name"
+		},
+		"folderName":{
+			"optional":false,
+			"description": "Video folder name"
+		},
+		"audioUrl":{
+			"optional":false,
+			"description": "Audio track url"
+		},
+		"slides":{
+			"optional":false,
+			"description": "A list of slides to render"
+		}
+	},
+	"slides":{
+		"slideType":{
+			"allowed": ["sectionHeader", "photo"],
+			"type":"str",
+			"optional": false,
+			"description": "Must be a string",
+			"photo":{
+				"resourceUrl":{
+					"type":"str",
+					"optional":false,
+					"description": "Must be a string, public url."
+				}
+			},
+			"sectionHeader":{
+				"layers":{
+					"optional":false,
+					"description": "A sectionHeader must contain a list of resource layers."
+				}
+			}
+		},
+		"duration":{
+			"type":"int",
+			"optional": true,
+			"default":5.0,
+			"eval": "int({})/float(1000)",
+			"description": "Must be is an integer specified in milliseconds"
+		},
+		"transitionIn": {
+			"allowed":["immediate", "fadeIn", "fadeFromColor"],
+			"type":"str",
+			"default": "immediate",
+			"optional": true,
+			"description": "Must be is an integer specified in milliseconds",
+			"fadeFromColor":{
+				"transitionInColor":{
+					"type":"str",
+					"default":"#000000",
+					"optional":true
+				}
+			}
+		},
+		"transitionInDuration":{
+			"type":"int",
+			"eval": "{}/float(1000)",
+			"default": 0,
+			"optional": true,
+			"description": "Must be is an integer specified in milliseconds"
+		},
+		"transitionInStart":{
+			"type":"int",
+			"eval": "int({})/float(1000)",
+			"default": 0,
+			"optional": true,
+			"description": "Must be is an integer specified in milliseconds"
+		},
+		"transitionOut": {
+			"allowed":["immediate", "fadeOut", "fadeToColor", "fadeOutOverNext"],
+			"type":"str",
+			"default": "immediate",
+			"optional": true,
+			"fadeToColor":{
+				"transitionOutColor":{
+					"type":"str",
+					"default":"#000000",
+					"optional":true
+				}
+			}
+		},
+		"transitionOutDuration":{
+			"type":"int",
+			"eval": "int({})/float(1000)",
+			"default": 0,
+			"optional": true
+		},
+		"transitionOutStart":{
+			"type":"int",
+			"eval": "int({})/float(1000)",
+			"default": 0,
+			"optional": true
+		}
+	},
+	"layers":{
+		"resourceType": {
+			"allowed": ["graphic", "text"],
+			"type":"str",
+			"optional": false,
+			"text":{
+				"text":{
+						"type":"str",
+						"optional": false
+					},
+					"fontSize":{
+						"type":"int",
+						"default": 72,
+						"eval": "int('{}')",
+						"optional": true,
+						"description": "Font size mus be an integer"
+					},
+					"kerning":{
+						"optional": true,
+						"default": 5,
+						"eval": "int('{}')",
+						"description": "Font kerning must be an integer."
+					}
+				},
+			"graphic":{
+				"width":{
+					"eval": "int('{}'.strip('%'))/float(100)",
+					"default": 0.5,
+					"optional": true,
+					"description": "Width of graphic, in percent of screen size."
+				},
+				"height":{
+					"eval": "int('{}'.strip('%'))/float(100)",
+					"default": 0.5,
+					"optional": true,
+					"description": "Height of graphic, in percent of screen size."
+				}
+			}
+		},
+		"resourceUrl":{
+			"type":"str",
+			"optional":false,
+			"description": "resourceUrl Must be a string, public url."
+		},
+		"top":{
+			"eval": "int('{}'.strip('%'))/float(100)",
+			"default": 0.5,
+			"optional": true,
+			"description": "Vertical position of resource center"
+		},
+		"left":{
+			"eval": "int('{}'.strip('%'))/float(100)",
+			"default": 0.5,
+			"optional": true,
+			"description": "Horizontal position of resource center"
+		},
+		"transitionIn": {
+			"allowed":["immediate", "fadeIn", "bloom", "wipeLeftToRight"],
+			"type":"str",
+			"default": "immediate",
+			"optional": true,
+			"description": "Must be is an integer specified in milliseconds",
+			"bloom":{
+				"leftStart":{
+					"eval": "int('{}'.strip('%'))/float(100)",
+					"default":0,
+					"optional":false,
+					"description": "Position is a string in percent. Ex: '50%'"
+				},
+				"topStart":{
+					"eval": "int('{}'.strip('%'))/float(100)",
+					"default":0,
+					"optional":false,
+					"description": "Position is a string in percent. Ex: '50%'"
+				}
+			}
+		},
+		"transitionOut": {
+			"allowed":["immediate", "fadeOut"],
+			"type":"str",
+			"default": "immediate",
+			"optional": true
+		},
+		"transitionInDuration":{
+			"type":"int",
+			"eval": "{}/float(1000)",
+			"default": 0,
+			"optional": true,
+			"description": "Must be is an integer specified in milliseconds"
+		},
+		"transitionInStart":{
+			"type":"int",
+			"eval": "int({})/float(1000)",
+			"default": 0,
+			"optional": true,
+			"description": "Must be is an integer specified in milliseconds"
+		},
+		"transitionOutDuration":{
+			"type":"int",
+			"eval": "int({})/float(1000)",
+			"default": 0,
+			"optional": true
+		},
+		"transitionOutStart":{
+			"type":"int",
+			"eval": "int({})/float(1000)",
+			"default": 0,
+			"optional": true
+		}
+	}
+}

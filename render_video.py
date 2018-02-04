@@ -6,6 +6,7 @@
 # CatAndCastle LLC, 2018
 #============================================================
 import os,json,urllib
+import urllib2
 import src.common as common
 import boto3
 import subprocess
@@ -14,13 +15,13 @@ from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 dynamodb = boto3.resource('dynamodb')
 TABLE = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
-# TABLE = dynamodb.Table('WellOfMemories')
+
 import logging
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
-# FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
-FFMPEG_BIN = "ffmpeg"
+FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
+# FFMPEG_BIN = "ffmpeg"
 
 
 def handler(event, context):
@@ -35,7 +36,7 @@ def handler(event, context):
 	project_data = response['Items'][0]['data']
 	print(project_data)
 
-	# slides	
+	# chunks	
 	chunks = TABLE.query(
 		KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('chunk_')
 	)
@@ -46,55 +47,69 @@ def handler(event, context):
 		# download files to disk
 		local_path = common.downloadFile(i['chunkData']["url"], "chunk", "mp4")
 		paths.append("file '%s" % local_path)
-		
+	
+	# concat.txt file		
 	with open('/tmp/concat.txt', 'w') as the_file:
 		the_file.write("\n".join(paths))
 
-
-
+	# Concatenate segments
 	video_file = "/tmp/concat.mp4"
 	cmd = "%s -f concat -safe 0 -i /tmp/concat.txt -c copy -y %s" % (FFMPEG_BIN, video_file)
 	common.executeCmd(cmd)
 
-	cmd = "ffmpeg -i /tmp/concat.mp4 2>&1 | grep \"Duration\"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, \":\"); split(A[3], B, \".\"); print 3600*A[1] + 60*A[2] + B[1] }'"
-	duration = check_output(cmd, shell=True,stderr=subprocess.STDOUT).replace("\n","")
-	print "duration = %s" % duration
+	# Get final video duration
+	cmd = FFMPEG_BIN + " -i /tmp/concat.mp4 2>&1 | grep \"Duration\"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, \":\"); split(A[3], B, \".\"); print 3600*A[1] + 60*A[2] + B[1] }'"
+	res = common.executeCmd(cmd)
+	duration = res["result"].replace("\n", "")
+	# duration = check_output(cmd, shell=True,stderr=subprocess.STDOUT).replace("\n","")
+	# print "duration = %s" % duration
 
+	# Add audio track - with 3 second audio fade out
 	final_file = "/tmp/%s" % project_data['fileName']
-	cmd = "%s -i %s -i %s -c:v copy -c:a aac -t %s -y %s" % (FFMPEG_BIN, video_file, project_data['audioUrl'], duration, final_file)
-	common.executeCmd(cmd)
+	cmd = [FFMPEG_BIN,
+		"-i %s -i %s" % (video_file, project_data['audioUrl']),
+		"-filter_complex \"[1]afade=t=out:st=%.2f:d=3[a]\" -map 0:0 -map \"[a]\"" % (int(duration)-3),
+		"-c:v copy -c:a aac -t %s -y %s" % (duration, final_file)
+		]
+	common.executeCmd(" ".join(cmd))
 
-	# res = comp.render(video_file)
-	# combo_file = "/tmp/%s" % project_data['fileName']
-	# res = comp.addAudio(project_data['audioUrl'], combo_file)
-	# if res['error'] is False:
-	# 	common.uploadS3(combo_file, "%s/%s" % (project_id, project_data['fileName']))
-	# 	# deleteProjectData(proj_id, slides)
+	# cleanup
+	deleteProjectData(project_id)
 
-def download(url):
-		path = '/tmp/chunk-' + common.randomString(10) +'.mp4'
-		urllib.urlretrieve(url, path)
-		return path
+	# upload final file to S3
+	video_url = common.uploadS3(final_file, "%s/%s" % (project_data['folderName'], project_data['fileName']))
 
-def deleteProjectData(project_id, slides):
+	# Notify webhook
+	req = urllib2.Request(project_data['webhookUrl'])
+	req.add_header('Content-Type', 'application/json')
+	data = {
+		'project_id': project_id,
+		'video_url': video_url
+		}
+	urllib2.urlopen(req, json.dumps(data))
 
-	TABLE.delete_item(
-		Key={
-		'id': project_id,
-		'item':'counter'
-		})
-	
+def deleteProjectData(project_id):
+	# project info
 	TABLE.delete_item(
 		Key={
 		'id': project_id,
 		'item':'info'
 		})
 
-	for i in slides['Items']:
+	counters = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('counter'))
+	slides = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('slide_'))
+	chunks = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('chunk_'))
+
+	allitems = counters['Items'] + slides['Items'] + chunks['Items']
+	for i in allitems:
 		TABLE.delete_item(
 		    Key={
 		        'id': project_id,
 				'item':i['item']
 		    })
 
-handler({"project_id":"3Cpn9KsMyE52XnseCm8sVXKf"},{})
+	# S3 objects
+	common.deleteFromS3("%s/" % project_id)
+
+# handler({"project_id":"3Cpn9KsMyE52XnseCm8sVXKf"},{})
+# deleteProjectData("3Cpn9KsMyE52XnseCm8sVXKf")

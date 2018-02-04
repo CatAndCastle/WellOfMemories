@@ -179,6 +179,14 @@ def handler(event, context):
 	for cid in chunk_ids:
 		chunk_url = uploadChunk(project_id, cid, "/tmp/%s.mp4" % cid)
 		saveChunkData(project_id, cid, chunk_url)
+
+	# Update counter_chunks
+	numLeft = common.decrementCounter(project_id, 'counter_chunks')
+	if numLeft == 0:
+		render_video_function_name = context.function_name.replace("render_transition", "render_video")
+		event = {'project_id': project_id}
+		common.invokeLambda(render_video_function_name, event)
+
 def getChunkId(chunk_idx, chunk_sub_idx):
 	return "chunk_%03d_%i" % (chunk_idx, chunk_sub_idx)
 def uploadChunk(project_id, chunk_id, file):
@@ -199,23 +207,13 @@ def getSlideData(project_id, slide):
 		print(e.response['Error']['Message'])
 		return {}
 	else:
-		return validate(response['Item']['slideData'])
+		return response['Item']['slideData']
 
-def validate(slideData):
-	if 'transitionOutDuration' not in slideData:
-		slideData['transitionOutDuration'] = 2000
-	if 'transitionOutStart' not in slideData:
-		slideData['transitionOutStart'] = slideData['duration'] - slideData['transitionOutDuration']
-	
-	for key,value in slideData.iteritems():
-		if key=="duration" or key=="transitionInStart" or key=="transitionInDuration" or key=="transitionOutStart" or key=="transitionOutDuration":
-			slideData[key] = int(value)/float(1000)
-	return slideData
 
 # event={
 # 	'project_id':"3Cpn9KsMyE52XnseCm8sVXKf",
-# 	'slide_from':"slide_0",
-# 	'slide_to':"slide_1",
+# 	'slide_from':"slide_001",
+# 	'slide_to':"slide_001",
 # 	'chunk_idx':0
 # }
 # handler(event,{})

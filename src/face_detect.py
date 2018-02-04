@@ -2,8 +2,6 @@ import cv2
 import os, urllib
 import numpy as np
 
-here = os.path.dirname(os.path.realpath(__file__))
-
 def get_work_dir(imagePath):
 	filename, file_extension = os.path.splitext(os.path.basename(imagePath))
 	dirname = os.path.dirname(imagePath) + "/analysis/"
@@ -13,9 +11,8 @@ def get_work_dir(imagePath):
 
 def detect(imagePath):
 
-	# this_dir = os.path.dirname(os.path.realpath(__file__))
-	# cascPath = this_dir + "/haarcascade_frontalface_default.xml"
-	cascPath = os.path.join(here, '../assets/haarcascade_frontalface_default.xml')
+	# cascPath = os.path.join(here, '../assets/haarcascade_frontalface_default.xml')
+	cascPath = os.environ['LAMBDA_TASK_ROOT']+'/assets/haarcascade_frontalface_default.xml'
 	filename, file_extension = os.path.splitext(os.path.basename(imagePath))
 
 	# Create the haar cascade

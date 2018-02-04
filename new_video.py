@@ -3,18 +3,16 @@
 # CatAndCastle LLC, 2018
 #============================================================
 
-import os,json
+import sys,os,json,random
 import boto3
 import logging
-import random
 import src.common as common
+import src.validate as Validator
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
 sns_client = boto3.client('sns')
 dynamodb = boto3.resource('dynamodb')
-
-DYNAMODB_TABLE = os.environ['DYNAMODB_TABLE']
 
 class AnimationType:
 	def __init__(self):
@@ -35,11 +33,24 @@ class AnimationType:
 
 def handler(event, context):
 	log.debug("Received event {}".format(json.dumps(event)))
-	print context.function_name
+
+	# Validate input	
+	try:
+		Validator.parse(event)
+	except ValueError as e:
+		print(json.dumps(e.args[0], indent=4))
+		return {
+	        'statusCode': 400,
+	        'body': json.dumps(e.args[0])
+	    }
+	# print(json.dumps(event, indent=4))
+	# sys.exit(0)
 
 	project_id = event["id"]
 	slides = event["slides"]
 	animation = AnimationType()
+
+	setCounter(project_id, len(slides))
 
 	n=0
 	for slide in slides:
@@ -51,37 +62,22 @@ def handler(event, context):
 			a = animation.random()
 		else:
 			slide['animation'] = animation.next()
-		
 		log.debug("Slide JSON {}".format(json.dumps(slide)))
+
 		#Invoke Lambda to render slide
-		function_name = context.function_name.replace("new_video", "render_slide")
-		common.invokeLambda(function_name, slide)
-
-		# topic_arn = "arn:aws:sns:us-east-1:%s:%s" % (context.invoked_function_arn.split(":")[4], os.environ['RENDER_SLIDE_SNS'])
-		# response = sns_client.publish(
-		#     TopicArn=topic_arn,
-		#     Message=json.dumps({'default': json.dumps(slide)}),
-		#     Subject=slide_id,
-		#     MessageStructure='json'
-		# )
-
+		render_slide_function = context.function_name.replace("new_video", "render_slide")
+		common.invokeLambda(render_slide_function, slide)
 		n=n+1
-	
-
-	num_slides = len(slides)
-	setCounter(project_id, num_slides)
+		
 	saveProjectInfo(event)
 
 	return {
         'statusCode': 200,
-        'body': json.dumps({"numSlides":num_slides})
+        'body': json.dumps({"numSlides":len(slides)})
     }
 
-# def validate(slide):
-
-
 def saveProjectInfo(data):
-	table = dynamodb.Table(DYNAMODB_TABLE)
+	table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
 	table.put_item(
 		Item={
 		'id': data['id'],
@@ -89,16 +85,20 @@ def saveProjectInfo(data):
 		'data': {
 			'webhookUrl': data['webhookUrl'],
 			'fileName': data['fileName'],
+			'folderName': data['folderName'],
 			"audioUrl": data['audioUrl']
 			}
 		})
 
 def setCounter(project_id, num):
-	table = dynamodb.Table(DYNAMODB_TABLE)
+	table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
 	table.put_item(
 		Item={
 		'id': project_id,
-		'item':'counter',
-		'numSlides': num
+		'item':'counter_slides',
+		'num': num
 		})
-		
+
+# test
+# event = json.load(open(os.environ['LAMBDA_TASK_ROOT']+'/new_video.json'))
+# handler(event,{})

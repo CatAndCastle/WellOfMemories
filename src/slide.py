@@ -16,7 +16,7 @@ class Slide:
 
 	def render(self):
 		if self.data["slideType"]=="sectionHeader":
-			comp = Composition(self.data["duration"])
+			comp = Composition(self.data)
 			layers = self.data["layers"]
 			for layer in layers:
 				comp.addResource(layer)
@@ -26,7 +26,9 @@ class Slide:
 
 			
 		elif self.data["slideType"]=="photo":
-			photo = PhotoResource(self.data)
+			# comp = Composition(self.data)
+			
+			photo = PhotoResource(self.data, None)
 			res = photo.render()
 			self.processRenderResult(res)
 

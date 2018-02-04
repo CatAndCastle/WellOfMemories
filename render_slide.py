@@ -14,51 +14,22 @@ import logging
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
-sns_client = boto3.client('sns')
 dynamodb = boto3.resource('dynamodb')
-COUNTER_TABLE = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
+sys.path.append(os.environ['LAMBDA_TASK_ROOT'] + "/dependencies/")
 
-here = os.path.dirname(os.path.realpath(__file__))
-IMG_PATH = "/tmp/img.jpg"
-VIDEO_PATH = "/tmp/slide.mp4"
-
-# Helper class to convert a DynamoDB item to JSON.
-class DecimalEncoder(json.JSONEncoder):
-	def default(self, o):
-		if isinstance(o, decimal.Decimal):
-			if o % 1 > 0:
-				return float(o)
-			else:
-				return int(o)
-		return super(DecimalEncoder, self).default(o)
 
 def handler(event, context):
 	common.cleanup()
-
 	log.debug("Received event {}".format(json.dumps(event)))
-	# message = json.loads(event['Records'][0]['Sns']['Message'])
-	# log.debug("Parsed message {}".format(message))
 
 	project_id = event["project_id"]
-
 	s = Slide(event)
 	s.render()
 	
 	# UPDATE COUNTER
-	numSlidesLeft = updateCounter(project_id)
-
+	numSlidesLeft = common.decrementCounter(project_id, 'counter_slides')
 	if numSlidesLeft == 0:
 		triggerTransitions(project_id, context)
-		# # TODO: Send SNS to combine slides
-		# print("DONE WITH SLIDES ----> ")
-		# # print("TODO: send to combine queue")
-		# topic_arn = "arn:aws:sns:us-east-1:%s:%s" % (context.invoked_function_arn.split(":")[4], os.environ['RENDER_VIDEO_SNS'])
-		# response = sns_client.publish(
-		#     TopicArn=topic_arn,
-		#     Message=json.dumps({'default': json.dumps({"project_id":proj_id})}),
-		#     Subject=proj_id,
-		#     MessageStructure='json'
-		# )
 
 	return {
         'statusCode': 200,
@@ -71,11 +42,20 @@ def triggerTransitions(project_id, context):
 		KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('slide_')
 	)
 	# render transition for each pair
-	num_pairs = 0
 	chunk_idx = 0
 	lambda_function_name = context.function_name.replace("render_slide", "render_transition")
+	num_transitions = len(slides['Items'])-1
+	
+	# Set chunks counter
+	dynamodb.Table(os.environ['DYNAMODB_TABLE']).put_item(
+		Item={
+		'id': project_id,
+		'item':'counter_chunks',
+		'num': num_transitions
+		})
 
-	while chunk_idx < len(slides['Items'])-1:
+	# Trigger render_transition function for each pair of slides
+	while chunk_idx < num_transitions:
 		slide_from = slides['Items'][chunk_idx]['item']
 		slide_to = slides['Items'][chunk_idx+1]['item']
 		event = {
@@ -86,52 +66,26 @@ def triggerTransitions(project_id, context):
 		}
 		common.invokeLambda(lambda_function_name, event)
 		chunk_idx+=1
-		num_pairs+=1
 
-def updateCounter(project_id):
-	current = readCounter(project_id)
-
-	print("Attempting conditional update...")
-	try:
-		response = COUNTER_TABLE.update_item(
-			Key={
-				'id': project_id,
-				'item':'counter'
-			},
-			UpdateExpression="SET numSlides = numSlides - :incr",
-			ConditionExpression="numSlides = :current",
-			ExpressionAttributeValues={
-				':incr': decimal.Decimal(1),
-				':current': current
-			},
-			ReturnValues="UPDATED_NEW"
-		)
-	except ClientError as e:
-		print("UpdateItem failed:")
-		# print(json.dumps(e.response, indent=4, cls=DecimalEncoder))
-		if e.response['Error']['Code'] == "ConditionalCheckFailedException":
-			print(e.response['Error']['Message'])
-			# Retry
-			return updateCounter(proj_id)
-		else:
-			raise
-	else:
-		print("UpdateItem succeeded:")
-		print(json.dumps(response, indent=4, cls=DecimalEncoder))
-		return response["Attributes"]["numSlides"]
-
-def readCounter(proj_id):
-	try:
-		response = COUNTER_TABLE.get_item(
-			Key={
-				'id': proj_id,
-				'item':'counter'
-			}
-		)
-	except ClientError as e:
-		print(e.response['Error']['Message'])
-	else:
-		item = response['Item']
-		print("GetItem succeeded:")
-		print(json.dumps(item, indent=4, cls=DecimalEncoder))
-		return item['numSlides']
+#
+# Testing:
+#
+# event = {
+# 	"slideType": "photo",
+# 	"resourceUrl": "https://s3.amazonaws.com/wellofmemories.catandcastle.com/resources/2-AcademyYears/1-academyyears12.jpg",
+# 	"renderedUrl": "https://s3.amazonaws.com/dev.wom.com/3Cpn9KsMyE52XnseCm8sVXKf/slide_1.mp4",
+# 	"duration": 7.0,
+# 	"transitionIn": "fadeIn",
+# 	"transitionInStart": 1,
+# 	"transitionInDuration": 2.2,
+# 	"transitionInColor": "#000000",
+# 	"transitionOutColor": "#000000",
+# 	"transitionOut": "fadeToColor",
+# 	"transitionOutStart": 5.0,
+# 	"transitionOutDuration": 2.0,
+# 	"animation":"panup",
+# 	"idx":1,
+# 	"id":"3Cpn9KsMyE52XnseCm8sVXKf_001",
+# 	"project_id":"3Cpn9KsMyE52XnseCm8sVXKf"
+# }
+# handler(event, {})

@@ -12,28 +12,13 @@
 import math
 
 class ComplexFilter:
-	defaults={
-		"transitionIn": "immediate",
-		"transitionInStart": 0,
-		"transitionInDuration": 300,
-		"transitionOut": "immediate",
-		"transitionOutStart": 1000,
-		"transitionOutDuration": 300,
-		"top": "50%",
-		"left": "50%",
-		"topStart":"50%",
-		"leftStart":"50%"
-	}
+	
 	def __init__(self, resource):
 		self.filters = []
 		self.comp = resource.comp
 		self.data = {}
-		for key, value in self.defaults.iteritems():
-			self.set(key,value)
-		self.set("transitionOutStart",resource.comp.duration) #default to being onscreen for the whole duration
-		self.duration = int(resource.comp.duration)/float(1000)
-		# print "DURATION = %f" % self.duration
-		# print "INPUT DURATION = %i" % resource.comp.duration
+		self.duration = resource.comp.duration
+
 		for key, value in resource.data.iteritems():
 			self.set(key,value)
 
@@ -45,18 +30,20 @@ class ComplexFilter:
 		self.buildStream()
 
 	def set(self, key, value):
-		if key=="transitionInStart" or key=="transitionInDuration" or key=="transitionOutStart" or key=="transitionOutDuration":
-			self.data[key] = int(value)/float(1000)
-		elif key=="top" or key=="left" or key=="topStart" or key=="leftStart":
-			self.data[key] = int(value.strip('%'))/float(100)
-		elif key=="width" or key=="left" or key=="leftStart":
-			val = int(self.comp.width * int(value.strip('%'))/float(100))
-			# must be divisible by 2 for ffmpeg
+		# if key=="transitionInStart" or key=="transitionInDuration" or key=="transitionOutStart" or key=="transitionOutDuration":
+		# 	self.data[key] = int(value)/float(1000)
+		# elif key=="top" or key=="left" or key=="topStart" or key=="leftStart":
+		# 	self.data[key] = int(value.strip('%'))/float(100)
+		if key=="width":
+			# or key=="left" or key=="leftStart":
+			val = int(self.comp.width * value)
+			# dimension must be divisible by 2 for ffmpeg
 			val = math.floor(val/2) * 2
 			self.data[key] = val
-		elif key=="height" or key=="top" or key=="topStart":
-			val = int(self.comp.height * int(value.strip('%'))/float(100))
-			# must be divisible by 2 for ffmpeg
+		elif key=="height":
+			# or key=="top" or key=="topStart":
+			val = int(self.comp.height * value)
+			# dimension must be divisible by 2 for ffmpeg
 			val = math.floor(val/2) * 2
 			self.data[key] = val
 		else:
@@ -110,5 +97,22 @@ class ComplexFilter:
 
 def fadeInFromColor(start, duration, color):
 	return "fade=in:st=%.2f:d=%.2f:c=%s" % (start, duration, color)
+
 def fadeOutToColor(start, duration, color):
 	return "fade=out:st=%.2f:d=%.2f:c=%s" % (start, duration, color)
+
+def photoPanDown(start_y, duration):
+	filters = [
+		"crop=h=ih:w='if(gt(a,16/9),ih*16/9,iw)':y=0:x='if(gt(a,16/9),(ow-iw)/2,0)'[tmp]",
+		"[tmp]scale=-1:4000,crop=w=iw:h='min(iw*9/16,ih)':x=0:y='max((ih-oh)/6,%.2f*ih-((ih-oh)/6))+((t/%.2f)*(ih-oh)/6)',trim=duration=%.2f[tmp]" % (start_y, duration, duration),
+		"[tmp]zoompan=z='min(pzoom+0.0005,1.5)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1,setsar=sar=1:1"
+	]
+	return ";".join(filters)
+
+def photoPanUp(start_y, duration):
+	filters = [
+		"crop=h=ih:w='if(gt(a,16/9),ih*16/9,iw)':y=0:x='if(gt(a,16/9),(ow-iw)/2,0)'[tmp]",
+		"[tmp]scale=-1:4000,crop=w=iw:h='min(iw*9/16,ih)':x=0:y='%.2f*ih-((t/%.2f)*min(%.2f*ih,(ih-oh)/6))',trim=duration=%.2f[tmp]" % (start_y, duration,start_y, duration),
+		"[tmp]zoompan=z='if(lte(pzoom,1.0),1.15,max(1.0,pzoom-0.0005))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1,setsar=sar=1:1"
+	]
+	return ";".join(filters)

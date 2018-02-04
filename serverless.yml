@@ -26,6 +26,7 @@ custom:
 provider:
   name: aws
   runtime: python2.7
+  memorySize: 3000 # Default is 1024. Max is 3008. More memory => more CPU => faster rendering
   environment:
     DYNAMODB_TABLE: ${self:custom.dynamo_table}
     S3_BUCKET: ${self:custom.video_bucket}
@@ -37,8 +38,17 @@ provider:
     - Effect: Allow
       Resource: "arn:aws:s3:::${self:custom.video_bucket}/*"
       Action:
+        - s3:ListBucket
         - s3:PutObject
         - s3:PutObjectAcl
+        - s3:DeleteObject
+        - s3:GetObject
+    - Effect: Allow
+      Resource: "*"
+      Action:
+        - s3:ListBucket
+        - s3:ListObjects
+        - s3:DeleteObject
     - Effect: Allow
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
       Action:
@@ -109,6 +119,15 @@ functions:
       - http:
           path: new_video/
           method: post
+          cors: true
+    memorySize: 1024
+    package:
+      include:
+        - src/**
+      exclude:
+        - bin/**
+        - ImageMagick-7.0.7/**
+        - assets/**
   render_slide:
     handler: render_slide.handler
     timeout: 180
@@ -118,3 +137,11 @@ functions:
   render_video:
     handler: render_video.handler
     timeout: 300
+  webhook:
+    handler: webhook.handler
+    memorySize: 512
+    events:
+      - http:
+          path: webhook/
+          method: post
+          cors: true
