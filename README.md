@@ -2,7 +2,7 @@
 
 Python 2.7 Serverless application for Well of Memories.
 The application consists of a POST API endpoint that accepts JSON data with a list of slides to render.
-Each slide is rendered in parallel on AWS Lambda
+Each slide is rendered in parallel on AWS Lambda.
 
 ## Packaged Dependencies ##
 * FFmpeg
@@ -22,9 +22,6 @@ S3 Bucket where intermediate files and the final videos will be stored
 * dynamo_table:
 DynamoDB table for storing data during rendering
 
-
-## Deployment ##
-```serverless deploy [--aws-profile serverless]```
 
 ## Lambda Functions ##
 * new_video
