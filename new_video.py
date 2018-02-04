@@ -34,6 +34,15 @@ class AnimationType:
 def handler(event, context):
 	log.debug("Received event {}".format(json.dumps(event)))
 
+	if 'body' in  event:
+		try:
+			event = json.loads(event['body'])
+		except ValueError:
+			return {
+		        'statusCode': 400,
+		        'msg': 'Invalid JSON input'
+		    }
+
 	# Validate input	
 	try:
 		Validator.parse(event)

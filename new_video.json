@@ -1,6 +1,6 @@
 {
   "id": "3Cpn9KsMyE52XnseCm8sVXKf",
-  "webhookUrl": "http://www.something.com/",
+  "webhookUrl": "https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/webhook",
   "folderName": "miriam-kramer-3Cpn9KsMyE52XnseCm8sVXKf",
   "fileName": "miriam-kramer-well-of-memories.mp4",
   "audioUrl": "https://s3.amazonaws.com/dev.wom.com/audio.mp3",
