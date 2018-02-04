@@ -28,7 +28,7 @@ curl -X POST -H "Content-Type: application/json" -d @new_video.json https://65om
 * video_bucket: 
 S3 Bucket where intermediate files and the final videos will be stored
 * dynamo_table:
-DynamoDB table for storing data during rendering
+DynamoDB table for sharing data between lambda functions during rendering
 
 
 ## Lambda Functions ##
