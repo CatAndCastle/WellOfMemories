@@ -4,7 +4,7 @@ Python 2.7 Serverless application for Well of Memories.
 The application consists of a POST API endpoint that accepts JSON data with a list of slides to render.
 Each slide is rendered in parallel on AWS Lambda.
 
-## Development API Endpoint##
+## Development API Endpoint ##
 https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
 
 ## Packaged Dependencies ##
@@ -32,8 +32,8 @@ DynamoDB table for sharing data between lambda functions during rendering
 
 
 ## Lambda Functions ##
-* new_video
-* render_slide
-* render_transition
-* render_video
+* new_video: starts video creation, triggers the render_slide function for each slide in the video.
+* render_slide: renders one slide, uploads it to S3. When all slides have rendered - triggers the render_transition function to render overlapping transitions between slides.
+* render_transition: renders one transition, uploads it to S3. When all transitions have rendered - triggers the render_video function.
+* render_video: concatenates all slides and transitions together, adds audio, renders the final video and uploads it to S3. Posts the video_url to the provided /webhook API endpoint.
 * webhook
