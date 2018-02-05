@@ -3,6 +3,7 @@ service: wellofmemories
 #  stage: dev
 #  region: us-east-1
 
+# you can overwrite the bucket and database names here:
 custom:
   video_bucket: dev.wom.com
   dynamo_table: WellOfMemories
