@@ -11,7 +11,7 @@ custom:
 provider:
   name: aws
   runtime: python2.7
-  memorySize: 3000 # Default is 1024. Max is 3008. More memory => more CPU => faster rendering
+  memorySize: 3008 # Default is 1024. Max is 3008. More memory => more CPU => faster rendering
   environment:
     DYNAMODB_TABLE: ${self:custom.dynamo_table}
     S3_BUCKET: ${self:custom.video_bucket}
