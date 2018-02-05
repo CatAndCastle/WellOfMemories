@@ -41,7 +41,9 @@ DynamoDB table for sharing data between lambda functions during rendering
 
 ## Pricing ##
 * DynamoDb table
-  $2.91/month for 5 reads & writes per second
+  $2.91 per month for 5 reads & writes per second
+* S3 Storage
+  $0.023 per GB
 * Lambda
 
 | Function         | Memory   | Cost/second  | Average execution time | Average Cost / Video |
@@ -50,7 +52,7 @@ DynamoDB table for sharing data between lambda functions during rendering
 |render_slide      |3008 MB   | $0.00004897  | 10s/photo, 30s/header  |$0.09543              |
 |render_transition |3008 MB   | $0.00004897  | 8s/transition          |$0.0588               |
 |render_video      |3008 MB   | $0.00004897  |  TBD                   |                      |
-| **TOTAL**         |          |              |                        | $0.154
+| **TOTAL**         |          |              |                       | **$0.154**           |
 
 *assume an average video = 15 chapters with 10 photos/chapter
 
