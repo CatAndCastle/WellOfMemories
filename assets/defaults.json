@@ -121,7 +121,7 @@
 						"default": 72,
 						"eval": "int('{}')",
 						"optional": true,
-						"description": "Font size mus be an integer"
+						"description": "Font size must be an integer"
 					},
 					"kerning":{
 						"optional": true,

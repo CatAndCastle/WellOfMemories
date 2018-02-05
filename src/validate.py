@@ -15,7 +15,7 @@ def validate(data, paramsDict):
 			raise ValueError({"msg": "Missing input parameter '%s'" % key, "data":data})
 		# invalid parameter
 		if key in data and 'allowed' in obj and data[key] not in obj['allowed']:
-			raise ValueError({"msg": "Invalid value for '%s'." % key, "expected_values":obj['allowed'], "data":data})
+			raise ValueError({"msg": "Unsupported value for '%s'." % key, "expected_values":obj['allowed'], "data":data})
 		elif key in data and 'allowed' in obj and data[key] in obj:
 			# print "validating {}".format(data[key])
 			validate(data, obj[data[key]])
@@ -26,10 +26,10 @@ def validate(data, paramsDict):
 				parsed[key] = eval(obj['eval'].format(data[key]))
 			except TypeError as e:
 				# print e
-				raise ValueError({"msg": "Invalid value for '%s'. %s" % (key,obj['description']), "data":data})
+				raise ValueError({"msg": "Unable to parse input '{}:{}'. {}".format(key,data[key],obj['description']), "data":data})
 			except ValueError as e:
 				# print e
-				raise ValueError({"msg": "Invalid value for '%s'. %s" % (key,obj['description']), "data":data})
+				raise ValueError({"msg": "Unable to parse input '{}:{}'. {}".format(key,data[key],obj['description']), "data":data})
 		
 		elif key in data:
 			parsed[key] = data[key]
