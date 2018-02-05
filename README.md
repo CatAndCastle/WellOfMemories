@@ -27,10 +27,17 @@ https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
 
 ## Serverless Resources ##
 The app creates the following resources in yor AWS account:
-* `video_bucket`: 
-S3 Bucket where intermediate files and the final videos will be stored
-* `dynamo_table`:
-DynamoDB table for sharing data between lambda functions during rendering
+* `video_bucket`: S3 Bucket where intermediate files and the final videos will be stored
+* `dynamo_table`: DynamoDB table for sharing data between lambda functions during rendering
+
+The name of each resource can be customized in `serverless.yml`
+```
+# you can overwrite the bucket and database names here:
+custom:
+  video_bucket: dev.wom.com
+  dynamo_table: WellOfMemories
+```
+
 
 
 ## Lambda Functions ##
@@ -41,10 +48,8 @@ DynamoDB table for sharing data between lambda functions during rendering
 * **webhook**: receives the video url when video is ready for viewing. Saves project_id and video_url in database.
 
 ## Pricing ##
-* DynamoDb table
-  $2.91 per month for 5 reads & writes per second
-* S3 Storage
-  $0.023 per GB
+* DynamoDB table - $2.91 per month for 5 reads & writes per second
+* S3 Storage - $0.023 per GB
 * Lambda
 
 | Function         | Memory   | Cost/second  | Average execution time | Average Cost / Video |
