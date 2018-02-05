@@ -4,9 +4,6 @@ Python 2.7 Serverless application for Well of Memories.
 The application consists of a POST API endpoint that accepts JSON data with a list of slides to render.
 Each slide is rendered in parallel on AWS Lambda.
 
-## Development API Endpoint ##
-https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
-
 ## Packaged Dependencies ##
 * FFmpeg
 * ImageMagick
@@ -23,6 +20,10 @@ Trigger video creation process with a POST request to the [/new_video](https://g
 ```
 curl -X POST -H "Content-Type: application/json" -d @new_video.json https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
 ```
+
+## Development API Endpoint ##
+https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
+
 
 ## Serverless Resources ##
 The app creates the following resources in yor AWS account:
