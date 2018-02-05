@@ -38,3 +38,15 @@ DynamoDB table for sharing data between lambda functions during rendering
 * **render_transition**: renders one transition, uploads it to S3. When all transitions have rendered - triggers the render_video function.
 * **render_video**: concatenates all slides and transitions together, adds audio, renders the final video and uploads it to S3. Posts the video_url to the provided /webhook API endpoint.
 * **webhook**: receives the video url when video is ready for viewing. Saves project_id and video_url in database.
+
+## Pricing ##
+* DynamoDb table
+  $2.91/month for 5 reads & writes per second
+* Lambda
+| Function         | Memory   | Cost/second  | Average execution time |
+| -----------------|----------|--------------|------------------------|
+|new_video         |1024 MB   | $0.00001667  | 1s/request  |
+|render_slide      |3008 MB   | $0.00004897  | 10s/photo, 30s/header  |
+|render_transition |3008 MB   | $0.00004897  | 8s/transition  |
+|render_video      |3008 MB   | $0.00004897  |  TBD |
+
