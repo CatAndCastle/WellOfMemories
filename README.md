@@ -50,7 +50,7 @@ DynamoDB table for sharing data between lambda functions during rendering
 |render_slide      |3008 MB   | $0.00004897  | 10s/photo, 30s/header  |$0.09543              |
 |render_transition |3008 MB   | $0.00004897  | 8s/transition          |$0.0588               |
 |render_video      |3008 MB   | $0.00004897  |  TBD                   |                      |
-| TOTAL            |          |              |                        | $0.154
+| **TOTAL**         |          |              |                        | $0.154
 
 *assume an average video = 15 chapters with 10 photos/chapter
 
