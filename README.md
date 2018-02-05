@@ -27,9 +27,9 @@ https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
 
 ## Serverless Resources ##
 The app creates the following resources in yor AWS account:
-* video_bucket: 
+* `video_bucket`: 
 S3 Bucket where intermediate files and the final videos will be stored
-* dynamo_table:
+* `dynamo_table`:
 DynamoDB table for sharing data between lambda functions during rendering
 
 
