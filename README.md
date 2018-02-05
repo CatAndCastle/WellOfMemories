@@ -19,12 +19,13 @@ Deploy application on your AWS account
 serverless deploy [--aws-profile serverless]
 ```
 
-Trigger video creation process with a POST request to the /new_video endpoint. Refer to new_video.json for example json data to POST
+Trigger video creation process with a POST request to the [/new_video](https://github.com/CatAndCastle/WellOfMemories/wiki/New-Video) endpoint. Refer to new_video.json for example json data to POST
 ```
 curl -X POST -H "Content-Type: application/json" -d @new_video.json https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
 ```
 
 ## Srverless Resources ##
+The app creates the following resources in yor AWS account:
 * video_bucket: 
 S3 Bucket where intermediate files and the final videos will be stored
 * dynamo_table:
@@ -36,4 +37,4 @@ DynamoDB table for sharing data between lambda functions during rendering
 * **render_slide**: renders one slide, uploads it to S3. When all slides have rendered - triggers the render_transition function to render overlapping transitions between slides.
 * **render_transition**: renders one transition, uploads it to S3. When all transitions have rendered - triggers the render_video function.
 * **render_video**: concatenates all slides and transitions together, adds audio, renders the final video and uploads it to S3. Posts the video_url to the provided /webhook API endpoint.
-* **webhook**: example webhook API endpoint
+* **webhook**: receives the video url when video is ready for viewing. Saves project_id and video_url in database.
