@@ -44,10 +44,12 @@ DynamoDB table for sharing data between lambda functions during rendering
   $2.91/month for 5 reads & writes per second
 * Lambda
 
-| Function         | Memory   | Cost/second  | Average execution time |
-| -----------------|----------|--------------|------------------------|
-|new_video         |1024 MB   | $0.00001667  | 1s/request  |
-|render_slide      |3008 MB   | $0.00004897  | 10s/photo, 30s/header  |
-|render_transition |3008 MB   | $0.00004897  | 8s/transition  |
-|render_video      |3008 MB   | $0.00004897  |  TBD |
+| Function         | Memory   | Cost/second  | Average execution time | Average Cost / Video |
+| -----------------|----------|--------------|------------------------|----------------------|
+|new_video         |1024 MB   | $0.00001667  | 1s/request             |$0.00001667           |
+|render_slide      |3008 MB   | $0.00004897  | 10s/photo, 30s/header  |$0.09543              |
+|render_transition |3008 MB   | $0.00004897  | 8s/transition          |$0.0588               |
+|render_video      |3008 MB   | $0.00004897  |  TBD                   |                      |
+| TOTAL            |          |              |                        | $0.154
+*assume an average video = 15 chapters with 10 photos/chapter
 
