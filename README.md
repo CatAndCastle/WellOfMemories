@@ -43,6 +43,7 @@ DynamoDB table for sharing data between lambda functions during rendering
 * DynamoDb table
   $2.91/month for 5 reads & writes per second
 * Lambda
+
 | Function         | Memory   | Cost/second  | Average execution time |
 | -----------------|----------|--------------|------------------------|
 |new_video         |1024 MB   | $0.00001667  | 1s/request  |
