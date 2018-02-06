@@ -15,7 +15,6 @@ log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
 dynamodb = boto3.resource('dynamodb')
-sys.path.append(os.environ['LAMBDA_TASK_ROOT'] + "/dependencies/")
 
 
 def handler(event, context):
@@ -88,4 +87,15 @@ def triggerTransitions(project_id, context):
 # 	"id":"3Cpn9KsMyE52XnseCm8sVXKf_001",
 # 	"project_id":"3Cpn9KsMyE52XnseCm8sVXKf"
 # }
+# event={
+# 	"project_id":"aaaaaaaaaaaaaaaaaaaaaaaa",
+# 	"animation":"panup",
+# 	  "slideType": "photo",
+# 	  "resourceUrl": "https://s3.amazonaws.com/wellofmemories.catandcastle.com/resources/7-Survivalist+_+Adventurer/9-wilderness4.jpg",
+# 	  "duration": 7,
+# 	  "transitionOut": "fadeOutOverNext",
+# 	  "transitionOutDuration": 2,
+# 	  "transitionOutStart": 5
+# 	}
 # handler(event, {})
+# 

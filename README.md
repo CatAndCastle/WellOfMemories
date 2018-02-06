@@ -16,9 +16,9 @@ Deploy application on your AWS account
 serverless deploy [--aws-profile serverless]
 ```
 
-Trigger video creation process with a POST request to the [/new_video](https://github.com/CatAndCastle/WellOfMemories/wiki/New-Video) endpoint. Refer to new_video.json for example json data to POST
+Trigger video creation process with a POST request to the [/new_video](https://github.com/CatAndCastle/WellOfMemories/wiki/New-Video) endpoint. Some examples of json video data can be found int he /examples folder.
 ```
-curl -X POST -H "Content-Type: application/json" -d @new_video.json https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
+curl -X POST -H "Content-Type: application/json" -d @examples/sample_video.json https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
 ```
 
 ## Development API Endpoint ##
@@ -54,11 +54,14 @@ custom:
 
 | Function         | Memory   | Cost/second  | Average execution time | Average Cost / Video |
 | -----------------|----------|--------------|------------------------|----------------------|
-|new_video         |1024 MB   | $0.00001667  | 1s/request             |$0.00001667           |
+|new_video         |1024 MB   | $0.00001667  | 1s/request             |$0.00001667           | ** its 7s/request
 |render_slide      |3008 MB   | $0.00004897  | 10s/photo, 30s/header  |$0.09543              |
 |render_transition |3008 MB   | $0.00004897  | 8s/transition          |$0.0588               |
 |render_video      |3008 MB   | $0.00004897  |  TBD                   |                      |
 | **TOTAL**         |          |              |                       | **$0.154**           |
 
 *assume an average video = 15 chapters with 10 photos/chapter
+
+## Limitations ##
+
 

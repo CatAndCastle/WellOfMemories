@@ -13,7 +13,7 @@ FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
 
 class Composition:
 	# Must render at a higher resolution to achieve smooth animations
-	scale_factor = 3 
+	scale_factor = 4 
 
 	def __init__(self, data):
 		self.duration = data["duration"]

@@ -109,5 +109,5 @@ def setCounter(project_id, num):
 		})
 
 # test
-event = json.load(open(os.environ['LAMBDA_TASK_ROOT']+'/new_video.json'))
-handler(event,{})
+# event = json.load(open(os.environ['LAMBDA_TASK_ROOT']+'/new_video.json'))
+# handler(event,{})
