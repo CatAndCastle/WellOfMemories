@@ -63,5 +63,7 @@ custom:
 *assume an average video = 15 chapters with 10 photos/chapter
 
 ## Limitations ##
+* Lambda: allows up to 1000 concurrent lambda functions at a time.
+# DynamoDB: 5 reads/writes per second. May need to increase the writes settings.
 
 
