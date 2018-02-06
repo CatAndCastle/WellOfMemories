@@ -54,7 +54,7 @@ custom:
 
 | Function         | Memory   | Cost/second  | Average execution time | Average Cost / Video |
 | -----------------|----------|--------------|------------------------|----------------------|
-|new_video         |1024 MB   | $0.00001667  | 1s/request             |$0.00001667           | ** its 7s/request
+|new_video         |1024 MB   | $0.00001667  | 8s/request             |$0.00013336           |
 |render_slide      |3008 MB   | $0.00004897  | 10s/photo, 30s/header  |$0.09543              |
 |render_transition |3008 MB   | $0.00004897  | 8s/transition          |$0.0588               |
 |render_video      |3008 MB   | $0.00004897  |  TBD                   |                      |
@@ -64,6 +64,6 @@ custom:
 
 ## Limitations ##
 * Lambda: allows up to 1000 concurrent lambda functions at a time.
-# DynamoDB: 5 reads/writes per second. May need to increase the writes settings.
+* DynamoDB: 5 reads/writes per second. May need to increase the writes settings.
 
 

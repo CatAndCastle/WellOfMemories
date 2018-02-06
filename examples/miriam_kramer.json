@@ -1,5 +1,5 @@
 {
-  "id": "ABCFi7gnCUVdPj9jiRx1bjPa",
+  "id": "DEFFi7gnCUVdPj9jiRx1bjPa",
   "webhookUrl": "https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/webhook",
   "folderName": "miriam-kramer-ABCFi7gnCUVdPj9jiRx1bjPa",
   "fileName": "miriam-kramer-well-of-memories.mp4",
@@ -124,7 +124,7 @@
           "transitionInDuration": 2000,
           "transitionOut": "fadeOut",
           "transitionOutDuration": 300,
-          "transitionOutStart": 13000
+          "transitionOutStart": 12000
         }
       ]
     },
