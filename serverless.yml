@@ -9,7 +9,7 @@ plugins:
 custom:
   video_bucket: dev.wom.com
   dynamo_table: WellOfMemories
-  dead_letter_sns: slides-deadletter
+  dead_letter_sns: render-slide-deadletter
 
 provider:
   name: aws
@@ -74,7 +74,7 @@ resources:
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
+          WriteCapacityUnits: 20
     RendersBucket:
       Type: AWS::S3::Bucket
       DeletionPolicy: Retain
@@ -134,7 +134,17 @@ functions:
   render_slide_deadletter:
     handler: render_slide.handle_deadletter
     events:
-      - sns: arn:aws:sns:us-east-1:568183857234:slides-deadletter
+      - sns:
+          arn:
+            Fn::Join:
+              - ""
+              - - "arn:aws:sns:"
+                - Ref: "AWS::Region"
+                - ":"
+                - Ref: "AWS::AccountId"
+                - ":"
+                - ${self:custom.dead_letter_sns}
+          topicName: ${self:custom.dead_letter_sns}
   render_transition:
     handler: render_transition.handler
     timeout: 60
