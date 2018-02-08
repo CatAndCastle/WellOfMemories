@@ -69,7 +69,7 @@ custom:
 **assume all the slides render on the first try
 
 ## Limitations ##
-* Lambda: allows up to 1000 concurrent lambda functions at a time.
+* Lambda: allows up to 1000 concurrent lambda functions running at a time.
 * DynamoDB: 5 reads, 10 writes per second. May need to increase the number of writes, or have it scale dynamically based on your traffic.
 
 
