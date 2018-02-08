@@ -1,7 +1,7 @@
 {
-  "id": "DEFFi7gnCUVdPj9jiRx1bjPa",
+  "id": "HIJFi7gnCUVdPj9jiRx1bjPa",
   "webhookUrl": "https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/webhook",
-  "folderName": "miriam-kramer-ABCFi7gnCUVdPj9jiRx1bjPa",
+  "folderName": "miriam-kramer-HIJFi7gnCUVdPj9jiRx1bjPa",
   "fileName": "miriam-kramer-well-of-memories.mp4",
   "audioUrl": "https://s3.amazonaws.com/dev.wom.com/audio.mp3",
   "slides": [
@@ -959,6 +959,14 @@
     {
       "slideType": "photo",
       "resourceUrl": "https://s3.amazonaws.com/wellofmemories.catandcastle.com/resources/7-Survivalist+_+Adventurer/8-wilderness3.jpg",
+      "duration": 7000,
+      "transitionOut": "fadeOutOverNext",
+      "transitionOutDuration": 2000,
+      "transitionOutStart": 5000
+    },
+    {
+      "slideType": "photo",
+      "resourceUrl": "https://s3.amazonaws.com/wellofmemories.catandcastle.com/resources/7-Survivalist+_+Adventurer/9-wilderness4.jpg",
       "duration": 7000,
       "transitionOut": "fadeOutOverNext",
       "transitionOutDuration": 2000,
@@ -1935,11 +1943,11 @@
     {
       "slideType": "photo",
       "resourceUrl": "https://s3.amazonaws.com/wellofmemories.catandcastle.com/resources/15-WeWillRememberYou/2-grams.jpg",
-      "duration": 15000,
+      "duration": 10000,
       "transitionOut": "fadeToColor",
       "transitionOutColor": "#000000",
       "transitionOutDuration": 3000,
-      "transitionOutStart": 12000
+      "transitionOutStart": 7000
     }
   ]
 }

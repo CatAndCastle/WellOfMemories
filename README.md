@@ -33,6 +33,7 @@ https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
 The app creates the following resources in yor AWS account:
 * `video_bucket`: S3 Bucket where intermediate files and the final videos will be stored
 * `dynamo_table`: DynamoDB table for sharing data between lambda functions during rendering
+* `dead_letter_sns`: SNS topics that acts as a dead letter queue when slides fail to render
 
 The name of each resource can be customized in `serverless.yml`
 ```
@@ -40,9 +41,8 @@ The name of each resource can be customized in `serverless.yml`
 custom:
   video_bucket: dev.wom.com
   dynamo_table: WellOfMemories
+  dead_letter_sns: render-slide-deadletter
 ```
-
-
 
 ## Lambda Functions ##
 * **new_video**: starts video creation, triggers the render_slide function for each slide in the video.
@@ -65,9 +65,10 @@ custom:
 | **TOTAL**         |          |              |                       | **$0.154**           |
 
 *assume an average video = 15 chapters with 10 photos/chapter
+**assume all the slides render on the first try
 
 ## Limitations ##
 * Lambda: allows up to 1000 concurrent lambda functions at a time.
-* DynamoDB: 5 reads/writes per second. May need to increase the writes settings.
+* DynamoDB: 5 reads, 10 writes per second. May need to increase the number of writes, or have it scale dynamically based on your traffic.
 
 

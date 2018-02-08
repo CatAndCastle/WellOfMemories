@@ -56,27 +56,7 @@ class Slide:
 					'slideData': self.data
 					})
 			else:
-				# record error
-				self.error = True
-				self.data["duration_rendered"] = duration
-				common.saveToDynamo(
-					{'id': self.data["project_id"],
-					'item': "error_%03d" % self.data["idx"],
-					'slideData': self.data,
-					'msg': "could not render full slide"
-					})
-
 				raise SlideRenderDurationError({"rendered_duration":duration})
 
 		else:
-			# record error
-			self.error = True
-			self.data["duration_rendered"] = duration
-			common.saveToDynamo(
-				{'id': self.data["project_id"],
-				'item': "error_%03d" % self.data["idx"],
-				'slideData': self.data,
-				'msg': "error rendering slide"
-				})
-
 			raise SlideRenderError(res["error"])
