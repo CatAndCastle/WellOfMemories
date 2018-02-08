@@ -11,6 +11,10 @@ Each slide is rendered in parallel on AWS Lambda.
 * numpy
 
 ## Usage ##
+Instal plugin for handling Lambda dead letter queue
+```
+npm install serverless-plugin-lambda-dead-letter
+```
 Deploy application on your AWS account
 ```
 serverless deploy [--aws-profile serverless]

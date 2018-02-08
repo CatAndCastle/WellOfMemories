@@ -8,6 +8,7 @@
 import os,json,urllib
 import urllib2
 import src.common as common
+from src.common import DecimalEncoder
 import boto3
 import subprocess
 from subprocess import call,check_output
@@ -73,43 +74,13 @@ def handler(event, context):
 		]
 	common.executeCmd(" ".join(cmd))
 
-	# cleanup
-	deleteProjectData(project_id)
-
 	# upload final file to S3
 	video_url = common.uploadS3(final_file, "%s/%s" % (project_data['folderName'], project_data['fileName']))
 
-	# Notify webhook
-	req = urllib2.Request(project_data['webhookUrl'])
-	req.add_header('Content-Type', 'application/json')
-	data = {
-		'project_id': project_id,
-		'video_url': video_url
-		}
-	urllib2.urlopen(req, json.dumps(data))
+	# post result to webhook
+	common.notifyWebhook(project_id, video_url, "ready")
 
-def deleteProjectData(project_id):
-	# project info
-	TABLE.delete_item(
-		Key={
-		'id': project_id,
-		'item':'info'
-		})
 
-	counters = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('counter'))
-	slides = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('slide_'))
-	chunks = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('chunk_'))
-
-	allitems = counters['Items'] + slides['Items'] + chunks['Items']
-	for i in allitems:
-		TABLE.delete_item(
-		    Key={
-		        'id': project_id,
-				'item':i['item']
-		    })
-
-	# S3 objects
-	common.deleteFromS3("%s/" % project_id)
 
 # handler({"project_id":"3Cpn9KsMyE52XnseCm8sVXKf"},{})
 # deleteProjectData("3Cpn9KsMyE52XnseCm8sVXKf")

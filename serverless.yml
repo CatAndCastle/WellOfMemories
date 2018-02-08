@@ -2,11 +2,14 @@ service: wellofmemories
 # you can overwrite defaults here
 #  stage: dev
 #  region: us-east-1
+plugins:
+  - serverless-plugin-lambda-dead-letter
 
 # you can overwrite the bucket and database names here:
 custom:
   video_bucket: dev.wom.com
   dynamo_table: WellOfMemories
+  dead_letter_sns: slides-deadletter
 
 provider:
   name: aws
@@ -20,6 +23,10 @@ provider:
       Action:
         - lambda:InvokeFunction
       Resource: "*"
+    - Effect: Allow
+      Resource: "*"
+      Action:
+        - sns:Publish
     - Effect: Allow
       Resource: "arn:aws:s3:::${self:custom.video_bucket}/*"
       Action:
@@ -46,6 +53,10 @@ provider:
 
 resources:
   Resources:
+    SlideDeadLetterQueue:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:custom.dead_letter_sns}
     WellOfMemoriesCounterTable:
       Type: AWS::DynamoDB::Table
       DeletionPolicy: Retain
@@ -117,6 +128,13 @@ functions:
   render_slide:
     handler: render_slide.handler
     timeout: 180
+    deadLetter:
+      targetArn:
+        GetResourceArn: SlideDeadLetterQueue
+  render_slide_deadletter:
+    handler: render_slide.handle_deadletter
+    events:
+      - sns: arn:aws:sns:us-east-1:568183857234:slides-deadletter
   render_transition:
     handler: render_transition.handler
     timeout: 60

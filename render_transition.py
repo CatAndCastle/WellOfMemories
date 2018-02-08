@@ -25,7 +25,7 @@ FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
 # FFMPEG_BIN = "ffmpeg"
 
 def handler(event, context):
-	# common.cleanup()
+	common.cleanup()
 	# log.debug("Received event {}".format(json.dumps(event)))
 	
 	project_id = event["project_id"]
@@ -90,7 +90,9 @@ def handler(event, context):
 			saveChunkData(project_id, chunk_id, slide_to_data["renderedUrl"])
 			chunk_sub_idx+=1
 		
-		sys.exit(0)
+		# Decrement counter in DB
+		updateCounter(project_id, context)
+		sys.exit()
 
 
 	#
@@ -137,6 +139,15 @@ def handler(event, context):
 	if 'transitionOut' in slide_to_data and slide_to_data["transitionOut"]=="fadeOutOverNext":
 		slide_to_end_t = slide_to_data["transitionOutStart"]
 
+	# filters.append(
+	# 	"[1:v]split[v1-transition][v1-middle];\
+	# 	[v1-transition]trim=0:%.2f[v1-transition];\
+	# 	[v1-middle]trim=%.2f:%.2f,setpts=PTS-STARTPTS[v1-middle]" 
+	# 	% (slide_from_data["transitionOutDuration"],
+	# 		slide_from_data["transitionOutDuration"],
+	# 		slide_to_end_t
+	# 		)
+	# 	)
 	filters.append(
 		"[1:v]split[v1-transition][v1-middle];\
 		[v1-transition]trim=0:%.2f[v1-transition];\
@@ -180,6 +191,14 @@ def handler(event, context):
 		chunk_url = uploadChunk(project_id, cid, "/tmp/%s.mp4" % cid)
 		saveChunkData(project_id, cid, chunk_url)
 
+	# Update counter_chunks
+	numLeft = common.decrementCounter(project_id, 'counter_chunks')
+	if numLeft == 0:
+		render_video_function_name = context.function_name.replace("render_transition", "render_video")
+		event = {'project_id': project_id}
+		common.invokeLambda(render_video_function_name, event)
+
+def updateCounter(project_id, context):
 	# Update counter_chunks
 	numLeft = common.decrementCounter(project_id, 'counter_chunks')
 	if numLeft == 0:

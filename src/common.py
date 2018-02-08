@@ -1,6 +1,7 @@
 import os,string,random,urllib2,urllib,decimal
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key, Attr
 import subprocess, json
 from subprocess import call,check_output
 from decimal import *
@@ -40,6 +41,8 @@ def uploadS3(FILE, KEY):
 	data = open(FILE, 'rb')
 	s3 = boto3.resource('s3')
 	s3.Bucket(os.environ['S3_BUCKET']).put_object(Key=KEY, Body=data, ACL='public-read', ContentType='video/mp4')
+	# another option is to use upload_file:
+	# s3.Bucket(os.environ['S3_BUCKET']).upload_file(FILE, KEY, ExtraArgs={'ACL':'public-read', 'ContentType':'video/mp4'})
 	return "https://s3.amazonaws.com/"+os.environ['S3_BUCKET']+"/" + KEY
 
 def deleteFromS3(prefix):
@@ -50,11 +53,12 @@ def deleteFromS3(prefix):
 	for obj in bucket.objects.filter(Prefix=prefix):
 	    objects_to_delete.append({'Key': obj.key})
 
-	bucket.delete_objects(
-	    Delete={
-	        'Objects': objects_to_delete
-	    }
-	)
+	if len(objects_to_delete) > 0:
+		bucket.delete_objects(
+		    Delete={
+		        'Objects': objects_to_delete
+		    }
+		)
 
 def downloadFile(url, prefix, ext):
 		path = '/tmp/%s-%s.%s' % (prefix, randomString(10), ext)
@@ -74,6 +78,16 @@ def executeCmd(cmd):
 	        'body': e
 	        # 'body': json.dumps({'command': e.cmd, "code":e.returncode, "error_output":e.output})
 	    }
+
+def checkVideoDuration(file):
+	FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
+	cmd = [FFMPEG_BIN, 
+		"-i %s" % file,
+		 "2>&1 | grep \"Duration\"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, \":\"); split(A[3], B, \".\"); print 3600*A[1] + 60*A[2] + B[1] }'"
+		 ]
+	out = executeCmd(" ".join(cmd))
+	slide_duration = int(out["result"].replace("\n", ""))
+	return slide_duration
 
 def saveToDynamo(itemData):
 	dynamodb = boto3.resource('dynamodb')
@@ -146,3 +160,57 @@ def readCounter(project_id, item):
 		print("GetItem succeeded:")
 		print(json.dumps(item, indent=4, cls=DecimalEncoder))
 		return item['num']
+
+def notifyWebhook(project_id, video_url, status):
+	# Notify webhook, report any errors	
+
+	# get webhook
+	response = dynamodb.Table(os.environ['DYNAMODB_TABLE']).query(
+		KeyConditionExpression=Key('id').eq(project_id) & Key('item').eq('info'),
+	)
+	webhook = response['Items'][0]['data']['webhookUrl']
+	
+	# get errors
+	errors = dynamodb.Table(os.environ['DYNAMODB_TABLE']).query(
+		KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('error_')
+	)
+
+	# delete project data
+	deleteProjectData(project_id)
+
+	# post
+	req = urllib2.Request(webhook)
+	req.add_header('Content-Type', 'application/json')
+	data = {
+		'status': status,
+		'project_id': project_id,
+		'video_url': video_url,
+		'errors': errors['Items']
+		}
+	print webhook
+	print json.dumps(data, cls=DecimalEncoder)
+	urllib2.urlopen(req, json.dumps(data, cls=DecimalEncoder))
+
+def deleteProjectData(project_id):
+	# project info
+	TABLE.delete_item(
+		Key={
+		'id': project_id,
+		'item':'info'
+		})
+
+	counters = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('counter'))
+	slides = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('slide_'))
+	chunks = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('chunk_'))
+	errors = TABLE.query(KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('error_'))
+
+	allitems = counters['Items'] + slides['Items'] + chunks['Items'] + errors['Items']
+	for i in allitems:
+		TABLE.delete_item(
+		    Key={
+		        'id': project_id,
+				'item':i['item']
+		    })
+
+	# S3 objects
+	deleteFromS3("%s/" % project_id)

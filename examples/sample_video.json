@@ -1,7 +1,7 @@
 {
-  "id": "3Cpn9KsMyE52XnseCm8sVXKf",
+  "id": "sample_3",
   "webhookUrl": "https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/webhook",
-  "folderName": "miriam-kramer-3Cpn9KsMyE52XnseCm8sVXKf",
+  "folderName": "miriam-kramer-sample_3",
   "fileName": "miriam-kramer-well-of-memories.mp4",
   "audioUrl": "https://s3.amazonaws.com/dev.wom.com/audio.mp3",
   "slides": [
@@ -118,8 +118,8 @@
       "resourceUrl": "https://s3.amazonaws.com/wellofmemories.catandcastle.com/resources/2-AcademyYears/1-academyyears12.jpg",
       "duration": 7000,
       "transitionOut": "fadeOutOverNext",
-      "transitionOutStart": 5000,
-      "transitionOutDuration": 2000
+      "transitionOutDuration": 2000,
+      "transitionOutStart": 5000
     },
     {
       "slideType": "photo",

@@ -16,15 +16,33 @@ def handler(event, context):
 		except ValueError:
 			return {
 		        'statusCode': 400,
-		        'msg': 'Invalid JSON input'
+		        'body': 'Invalid JSON input'
 		    }
 	else:
 		data = event
-	# Do something with video_url here!
-	common.saveToDynamo({'id':data['project_id'], 'item':'result', 'video':data['video_url']})
 
+	status = data['status']
+	project_id = data['project_id']
+	video_url = data['video_url']
+	errors = data['errors']
 
+	# Do something with video_url here:
+	if status=="ready":
+		common.saveToDynamo({'id':project_id, 'item':'result', 'video':video_url})
+
+	# Process errors here:
+	# (pushing them back to dynamoDB for now)
+	print errors
+	for err in errors:
+
+		common.saveToDynamo(
+			{'id': project_id,
+			'item': "error_%03d" % err["slideData"]["idx"],
+			'slideData': err["slideData"]
+			})
+
+	# Must return something
 	return {
         'statusCode': 200,
-        'body': json.dumps({'video': data['video_url']})
+        'body': json.dumps({'msg': 'received'})
     }

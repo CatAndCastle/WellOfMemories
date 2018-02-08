@@ -10,6 +10,7 @@ import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from src.slide import Slide
+from src.slide import SlideRenderError, SlideRenderDurationError
 import logging
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
@@ -18,53 +19,83 @@ dynamodb = boto3.resource('dynamodb')
 
 
 def handler(event, context):
+	# clear /tmp folder
 	common.cleanup()
 	log.debug("Received event {}".format(json.dumps(event)))
-
+	
 	project_id = event["project_id"]
 	s = Slide(event)
+	# try:
 	s.render()
-	
-	# UPDATE COUNTER
-	numSlidesLeft = common.decrementCounter(project_id, 'counter_slides')
-	if numSlidesLeft == 0:
-		triggerTransitions(project_id, context)
 
-	return {
-        'statusCode': 200,
-        'body': json.dumps({"message": "OK"})
-    }
+	if not s.error:
+		# UPDATE COUNTER
+		numSlidesLeft = common.decrementCounter(project_id, 'counter_slides')
+		if numSlidesLeft == 0:
+			triggerTransitions(project_id, context)
+
+def noSlidesToRender(project_id):
+	common.notifyWebhook(project_id, "", "error")
+
 
 def triggerTransitions(project_id, context):
 	# get all rendered slides	
 	slides = dynamodb.Table(os.environ['DYNAMODB_TABLE']).query(
 		KeyConditionExpression=Key('id').eq(project_id) & Key('item').begins_with('slide_')
 	)
-	# render transition for each pair
-	chunk_idx = 0
-	lambda_function_name = context.function_name.replace("render_slide", "render_transition")
-	num_transitions = len(slides['Items'])-1
-	
-	# Set chunks counter
-	dynamodb.Table(os.environ['DYNAMODB_TABLE']).put_item(
-		Item={
-		'id': project_id,
-		'item':'counter_chunks',
-		'num': num_transitions
+
+	if len(slides['Items'])<1:
+		# If all the slides failed, and this is being triggered from handle_deadletter() 
+		# - end the render process
+		noSlidesToRender(project_id)
+	elif len(slides['Items'])==1:
+		# If only one slide rendered -> save it as chunk_000_0 and trigger video render
+		common.saveToDynamo({"id":project_id, 'item':'chunk_000_0', 'chunkData':{"url":slides['Items'][0]["slideData"]["renderedUrl"]}})
+		render_video_function_name = context.function_name.replace("render_slide", "render_video")
+		event = {'project_id': project_id}
+		common.invokeLambda(render_video_function_name, event)
+	else:
+		# render transition for each pair
+		chunk_idx = 0
+		lambda_function_name = context.function_name.replace("render_slide", "render_transition")
+		num_transitions = len(slides['Items'])-1
+		
+		# Set chunks counter
+		dynamodb.Table(os.environ['DYNAMODB_TABLE']).put_item(
+			Item={
+			'id': project_id,
+			'item':'counter_chunks',
+			'num': num_transitions
+			})
+
+		# Trigger render_transition function for each pair of slides
+		while chunk_idx < num_transitions:
+			slide_from = slides['Items'][chunk_idx]['item']
+			slide_to = slides['Items'][chunk_idx+1]['item']
+			event = {
+				'project_id': project_id,
+				'slide_from': slide_from,
+				'slide_to': slide_to,
+				'chunk_idx': chunk_idx
+			}
+			common.invokeLambda(lambda_function_name, event)
+			chunk_idx+=1
+
+def handle_deadletter(event, context):
+	log.debug("Received event {}".format(json.dumps(event)))
+	message = json.loads(event['Records'][0]['Sns']['Message'])
+	log.debug("Parsed message {}".format(message))
+
+	# push error to dynamo
+	common.saveToDynamo(
+		{'id': message["project_id"],
+		'item': "error_%03d" % message["idx"],
+		'slideData': message
 		})
 
-	# Trigger render_transition function for each pair of slides
-	while chunk_idx < num_transitions:
-		slide_from = slides['Items'][chunk_idx]['item']
-		slide_to = slides['Items'][chunk_idx+1]['item']
-		event = {
-			'project_id': project_id,
-			'slide_from': slide_from,
-			'slide_to': slide_to,
-			'chunk_idx': chunk_idx
-		}
-		common.invokeLambda(lambda_function_name, event)
-		chunk_idx+=1
+	numSlidesLeft = common.decrementCounter(message["project_id"], 'counter_slides')
+	if numSlidesLeft == 0:
+		triggerTransitions(message["project_id"], context)
 
 #
 # Testing:
