@@ -25,10 +25,6 @@ Trigger video creation process with a POST request to the [/new_video](https://g
 curl -X POST -H "Content-Type: application/json" -d @examples/sample_video.json https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
 ```
 
-## Development API Endpoint ##
-https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/new_video
-
-
 ## Serverless Resources ##
 The app creates the following resources in yor AWS account:
 * `video_bucket`: S3 Bucket where intermediate files and the final videos will be stored
