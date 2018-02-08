@@ -4,6 +4,8 @@ Python 2.7 Serverless application for Well of Memories.
 The application consists of a POST API endpoint that accepts JSON data with a list of slides to render.
 Each slide is rendered in parallel on AWS Lambda.
 
+![Serverless Diagram](https://s3.amazonaws.com/dev.wom.com/serverless-diagram.jpg)
+
 ## Packaged Dependencies ##
 * FFmpeg
 * ImageMagick
