@@ -47,12 +47,13 @@ custom:
 ## Lambda Functions ##
 * **new_video**: starts video creation, triggers the render_slide function for each slide in the video.
 * **render_slide**: renders one slide, uploads it to S3. When all slides have rendered - triggers the render_transition function to render overlapping transitions between slides.
+* **render_slide_deadletter**: handles sildes that fail to render and are pushed to an SNS dead letter queue. Function stores errors in the database.
 * **render_transition**: renders one transition, uploads it to S3. When all transitions have rendered - triggers the render_video function.
 * **render_video**: concatenates all slides and transitions together, adds audio, renders the final video and uploads it to S3. Posts the video_url to the provided /webhook API endpoint.
 * **webhook**: receives the video url when video is ready for viewing. Saves project_id and video_url in database.
 
 ## Pricing ##
-* DynamoDB table - $2.91 per month for 5 reads & writes per second
+* DynamoDB table - $5.32 per month for 5 reads & 10 writes per second
 * S3 Storage - $0.023 per GB
 * Lambda
 
