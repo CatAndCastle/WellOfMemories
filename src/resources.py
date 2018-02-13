@@ -163,16 +163,11 @@ class PhotoResource(Resource):
 		video_path = '/tmp/video-' + common.randomString(10) + '.mp4'
 		cmd = [
 			common.FFMPEG_BIN,
-			"-framerate 25 -y -loop 1 -i %s -t %.2f" % (self.path,self.data["duration"]),
+			"-framerate 25 -i %s -t %.2f" % (self.path,self.data["duration"]),
 			"-filter_complex \"%s\"" % ";".join(self.vf),
 			"-map \"[final]\"",
 			"-pix_fmt yuv420p -s 1280x720 -y %s" % video_path
 		]
-		# TESTING SIMPLE RENDER
-		# cmd = [
-		# 	common.FFMPEG_BIN,
-		# 	"-loop 1 -i %s -c:v libx264 -t %.2f -pix_fmt yuv420p -vf scale=1280x720 %s" % (self.path, self.data["duration"], video_path)
-		# ]
 		
 		res = common.executeCmd(" ".join(cmd))
 		if res["error"] is True:
