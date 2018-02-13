@@ -21,9 +21,6 @@ import logging
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
-FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
-# FFMPEG_BIN = "ffmpeg"
-
 def handler(event, context):
 	common.cleanup()
 	# log.debug("Received event {}".format(json.dumps(event)))
@@ -72,7 +69,7 @@ def handler(event, context):
 			slide_to_end_t = slide_to_data["transitionOutStart"]
 			chunk_id = getChunkId(chunk_idx, chunk_sub_idx)
 			cmd = [
-				FFMPEG_BIN,
+				common.FFMPEG_BIN,
 				"-i %s" % to_path,
 				"-vf trim=%.2f:%.2f" % (slide_to_start_t, slide_to_end_t),
 				"-y /tmp/%s.mp4" % chunk_id]
@@ -179,7 +176,7 @@ def handler(event, context):
 	chunk_sub_idx+=1
 
 	cmd = [
-			FFMPEG_BIN,
+			common.FFMPEG_BIN,
 			"-i %s -i %s" % (from_path, to_path),
 			"-filter_complex \"%s\"" % ";".join(filters),
 			" ".join(outs)

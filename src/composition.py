@@ -9,7 +9,6 @@ import src.filters as filters
 import src.resources as resources
 import src.common as common
 
-FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
 
 class Composition:
 	# Must render at a higher resolution to achieve smooth animations
@@ -60,7 +59,7 @@ class Composition:
 		video_path = '/tmp/video-' + common.randomString(10) + '.mp4'
 		# cmd = FFMPEG_BIN + " %s -filter_complex \"%s\" -map \"[v%i]\" -pix_fmt yuv420p -s 1280x720 -y %s" % (" ".join(self.inputs), ";".join(self.filters), len(self.inputs)-1, video_path)
 		cmd = [
-			FFMPEG_BIN,
+			common.FFMPEG_BIN,
 			" ".join(self.inputs),
 			"-filter_complex \"%s\"" % ";".join(self.filters),
 			"-map \"[comp]\"",

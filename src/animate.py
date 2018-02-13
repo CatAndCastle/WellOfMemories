@@ -10,7 +10,6 @@ import src.face_detect as FaceDetect
 import src.common as common
 
 here = os.path.dirname(os.path.realpath(__file__))
-FFMPEG_BIN = os.path.join(here, '../bin/ffmpeg')
 
 def animatePhoto(img, animation, duration):
 	# ANIMATE
@@ -29,7 +28,7 @@ def PhotoPanUp(img, d):
 
 	video_path = '/tmp/video-' + common.randomString(10) + '.mp4'
 
-	cmd = FFMPEG_BIN + " -y -loop 1 -loglevel panic -i %s \
+	cmd = common.FFMPEG_BIN + " -y -loop 1 -loglevel panic -i %s \
 	-c:v libx264 -pix_fmt yuv420p \
 	-filter_complex \
 	\"[0:v]crop=h=ih:w='if(gt(a,16/9),ih*16/9,iw)':y=0:x='if(gt(a,16/9),(ow-iw)/2,0)'[v01]; \
@@ -54,7 +53,7 @@ def PhotoPanDown(img, d):
 
 	video_path = '/tmp/video-' + common.randomString(10) + '.mp4'
 
-	cmd = FFMPEG_BIN + " -y -loop 1 -loglevel panic -i %s \
+	cmd = common.FFMPEG_BIN + " -y -loop 1 -loglevel panic -i %s \
 	-c:v libx264 -pix_fmt yuv420p \
 	-filter_complex \
 	\"[0:v]crop=h=ih:w='if(gt(a,16/9),ih*16/9,iw)':y=0:x='if(gt(a,16/9),(ow-iw)/2,0)'[v01]; \

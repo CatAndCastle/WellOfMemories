@@ -9,6 +9,11 @@ from decimal import *
 dynamodb = boto3.resource('dynamodb')
 TABLE = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
 
+if 'IS_LOCAL' in os.environ:
+	FFMPEG_BIN = 'ffmpeg'
+else:
+	FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
+
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
 	def default(self, o):
@@ -80,7 +85,7 @@ def executeCmd(cmd):
 	    }
 
 def checkVideoDuration(file):
-	FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
+	# FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
 	cmd = [FFMPEG_BIN, 
 		"-i %s" % file,
 		 "2>&1 | grep \"Duration\"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, \":\"); split(A[3], B, \".\"); print 3600*A[1] + 60*A[2] + B[1] }'"

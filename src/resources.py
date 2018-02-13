@@ -5,7 +5,7 @@
 # CatAndCastle LLC, 2018
 #============================================================
 
-import urllib, os, json
+import urllib, os, json, urllib2
 from src.font import Font
 import src.common as common
 import boto3
@@ -14,9 +14,6 @@ from subprocess import call,check_output
 from src.filters import ComplexFilter
 import src.filters as filters
 import src.face_detect as FaceDetect
-
-FFMPEG_BIN = os.environ['LAMBDA_TASK_ROOT']+'/bin/ffmpeg'
-# FFMPEG_BIN = "ffmpeg"
 
 def resource(data, composition):
 	if 'resourceType' in data and data["resourceType"] == "graphic":
@@ -104,12 +101,23 @@ class PhotoResource(Resource):
 	def create(self):
 		# DOWNLOAD IMAGE
 		self.path = '/tmp/photo-' + common.randomString(10)
+
+		# Download 
 		urllib.urlretrieve(self.data["resourceUrl"], self.path)
+		
+		# Trying another way to download - does not seem to make a difference
+		# print "downloading photo file"
+		# f = urllib2.urlopen(self.data["resourceUrl"])
+		# data = f.read()
+		# with open(self.path, "wb") as code:
+		# 	code.write(data)
+		# print "photo saved to disk"
 
 		# convert to jpg - need this step to make sure the images are encoded correctrly
 		# Without this step getting glitches in the rendered videos
-		encode="%s -i %s -pix_fmt yuvj420p -y %s" % (FFMPEG_BIN, self.path, self.path+'.jpg')
-		res = common.executeCmd(encode)
+		# convert="%s -i %s -pix_fmt yuvj420p -y %s" % (common.FFMPEG_BIN, self.path, self.path+'.jpg')
+		convert = "./tojpeg.sh %s" % self.path
+		res = common.executeCmd(convert)
 		self.path = self.path+'.jpg'
 
 	def addEffects(self):
@@ -126,15 +134,20 @@ class PhotoResource(Resource):
 				transiton_filters.append(filters.fadeOutToColor(self.data["transitionOutStart"], self.data["transitionOutDuration"], self.data["transitionOutColor"]))
 
 		if len(transiton_filters)>0:
-			self.vf.append("[animated]%s[animated]" % ",".join(transiton_filters))
+			self.vf.append("[animated]%s[final]" % ",".join(transiton_filters))
+		else:
+			self.vf.append("[animated]trim=duration=%.2f[final]" % self.data["duration"])
 
 	def render(self):
 		# FACE DETECTION
-		roi, dimensions, focus = FaceDetect.detect(self.path)
-		start_y_percent = 0.00
-		if dimensions[1] > dimensions[0]:
-			start_y_percent = roi[1]/float(dimensions[1])
-		# start_y_percent = 0.50
+		if 'IS_LOCAL' in os.environ:
+			start_y_percent = 0.50
+		else:
+			roi, dimensions, focus = FaceDetect.detect(self.path)
+			start_y_percent = 0.00
+			if dimensions[1] > dimensions[0]:
+				start_y_percent = roi[1]/float(dimensions[1])
+		
 
 		# Animate Photo
 		vf = []
@@ -149,19 +162,22 @@ class PhotoResource(Resource):
 
 		video_path = '/tmp/video-' + common.randomString(10) + '.mp4'
 		cmd = [
-			FFMPEG_BIN,
-			"-y -loop 1 -i %s" % self.path,
+			common.FFMPEG_BIN,
+			"-framerate 25 -y -loop 1 -i %s -t %.2f" % (self.path,self.data["duration"]),
 			"-filter_complex \"%s\"" % ";".join(self.vf),
-			"-map \"[animated]\"",
+			"-map \"[final]\"",
 			"-pix_fmt yuv420p -s 1280x720 -y %s" % video_path
 		]
+		# TESTING SIMPLE RENDER
+		# cmd = [
+		# 	common.FFMPEG_BIN,
+		# 	"-loop 1 -i %s -c:v libx264 -t %.2f -pix_fmt yuv420p -vf scale=1280x720 %s" % (self.path, self.data["duration"], video_path)
+		# ]
 		
 		res = common.executeCmd(" ".join(cmd))
 		if res["error"] is True:
 			return {'statusCode': 400,'error': res["body"]}
 		else:
+			print res['result']
 			return {'statusCode': 200, 'video_path':video_path}
 
-
-		# res = Animate.animatePhoto(self.path, self.data["animation"], self.data["duration"]);
-		# return res

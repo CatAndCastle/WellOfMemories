@@ -1,7 +1,7 @@
 {
-  "id": "HIJFi7gnCUVdPj9jiRx1bjPa",
+  "id": "AAAFi7gnCUVdPj9jiRx1bjPa",
   "webhookUrl": "https://65omk9x4r6.execute-api.us-east-1.amazonaws.com/dev/webhook",
-  "folderName": "miriam-kramer-HIJFi7gnCUVdPj9jiRx1bjPa",
+  "folderName": "miriam-kramer-AAAFi7gnCUVdPj9jiRx1bjPa",
   "fileName": "miriam-kramer-well-of-memories.mp4",
   "audioUrl": "https://s3.amazonaws.com/dev.wom.com/audio.mp3",
   "slides": [

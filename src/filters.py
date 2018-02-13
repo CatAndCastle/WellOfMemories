@@ -104,15 +104,23 @@ def fadeOutToColor(start, duration, color):
 def photoPanDown(start_y, duration):
 	filters = [
 		"crop=h=ih:w='if(gt(a,16/9),ih*16/9,iw)':y=0:x='if(gt(a,16/9),(ow-iw)/2,0)'[tmp]",
-		"[tmp]scale=-1:4000,crop=w=iw:h='min(iw*9/16,ih)':x=0:y='max((ih-oh)/6,%.2f*ih-((ih-oh)/6))+((t/%.2f)*(ih-oh)/6)',trim=duration=%.2f[tmp]" % (start_y, duration, duration),
-		"[tmp]zoompan=z='min(pzoom+0.0005,1.5)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1,setsar=sar=1:1"
+		"[tmp]scale=-1:4000,crop=w=iw:h='min(iw*9/16,ih)':x=0:y='max((ih-oh)/6,%.2f*ih-((ih-oh)/6))+((t/%.2f)*(ih-oh)/6)',trim=duration=%.2f[tmp1]" % (start_y, duration, duration),
+		"[tmp1]zoompan=z='min(pzoom+0.0005,1.5)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1,setsar=sar=1:1"
 	]
+	# filters = [
+	# 	"crop=h=ih:w='if(gt(a,16/9),ih*16/9,iw)':y=0:x='if(gt(a,16/9),(ow-iw)/2,0)'[tmp]",
+	# 	"[tmp]zoompan=z='min(pzoom+0.0005,1.5)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1,setsar=sar=1:1,trim=duration=%.2f" % duration
+	# ]
 	return ";".join(filters)
 
 def photoPanUp(start_y, duration):
 	filters = [
 		"crop=h=ih:w='if(gt(a,16/9),ih*16/9,iw)':y=0:x='if(gt(a,16/9),(ow-iw)/2,0)'[tmp]",
-		"[tmp]scale=-1:4000,crop=w=iw:h='min(iw*9/16,ih)':x=0:y='%.2f*ih-((t/%.2f)*min(%.2f*ih,(ih-oh)/6))',trim=duration=%.2f[tmp]" % (start_y, duration,start_y, duration),
-		"[tmp]zoompan=z='if(lte(pzoom,1.0),1.15,max(1.0,pzoom-0.0005))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1,setsar=sar=1:1"
+		"[tmp]scale=-1:4000,crop=w=iw:h='min(iw*9/16,ih)':x=0:y='%.2f*ih-((t/%.2f)*min(%.2f*ih,(ih-oh)/6))',trim=duration=%.2f[tmp1]" % (start_y, duration,start_y, duration),
+		"[tmp1]zoompan=z='if(lte(pzoom,1.0),1.15,max(1.0,pzoom-0.0005))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1,setsar=sar=1:1"
 	]
+	# filters = [
+	# 	"crop=h=ih:w='if(gt(a,16/9),ih*16/9,iw)':y=0:x='if(gt(a,16/9),(ow-iw)/2,0)'[tmp]",
+	# 	"[tmp]zoompan=z='if(lte(pzoom,1.0),1.15,max(1.0,pzoom-0.0005))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1,setsar=sar=1:1,trim=duration=%.2f" % duration
+	# ]
 	return ";".join(filters)
